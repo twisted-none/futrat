@@ -6,17 +6,18 @@ import '../models/all_models.dart';
 class DataProvider extends ChangeNotifier {
   final ApiClient _client = ApiClient();
 
+  // --- ДАННЫЕ ---
   List<MatchModel> _allMatches = [];
   List<MatchModel> _filteredMatches = [];
   List<Tournament> _tournaments = [];
   Tournament? _selectedLeague;
 
-  // Списки избранного
+  // --- ИЗБРАННОЕ ---
   List<Team> _favoriteTeams = [];
-  List<Tournament> _favoriteTournaments = []; // НОВОЕ
+  List<Tournament> _favoriteTournaments = [];
   List<Player> _favoritePlayers = [];
 
-  // Лидерборд
+  // --- ЛИДЕРБОРД ---
   final List<Map<String, dynamic>> _leaderboard = [
     {"username": "Striker99", "points": 150},
     {"username": "Admin", "points": 120},
@@ -25,7 +26,7 @@ class DataProvider extends ChangeNotifier {
 
   bool _isLoading = false;
 
-  // Геттеры
+  // --- ГЕТТЕРЫ ---
   List<MatchModel> get matches => _filteredMatches;
   List<Tournament> get tournaments => _tournaments;
   Tournament? get selectedLeague => _selectedLeague;
@@ -37,6 +38,7 @@ class DataProvider extends ChangeNotifier {
   
   bool get isLoading => _isLoading;
 
+  // --- ИНИЦИАЛИЗАЦИЯ ---
   Future<void> initData() async {
     _isLoading = true;
     notifyListeners();
@@ -47,15 +49,21 @@ class DataProvider extends ChangeNotifier {
         fetchFavorites(),
       ]);
       
+      // Выбор лиги по умолчанию (сначала любимые, потом АПЛ, потом первая попавшаяся)
       if (_tournaments.isNotEmpty && _selectedLeague == null) {
-        // Пытаемся выбрать избранную лигу первой, если есть
         if (_favoriteTournaments.isNotEmpty) {
-           _selectedLeague = _tournaments.firstWhere(
-             (t) => t.id == _favoriteTournaments.first.id, 
-             orElse: () => _tournaments.first
-           );
+           // Ищем объект турнира в общем списке, который соответствует любимому
+           try {
+             _selectedLeague = _tournaments.firstWhere((t) => t.id == _favoriteTournaments.first.id);
+           } catch (e) {
+             _selectedLeague = _tournaments.first;
+           }
         } else {
-           _selectedLeague = _tournaments.first;
+           try {
+             _selectedLeague = _tournaments.firstWhere((t) => t.name == "Premier League");
+           } catch (e) {
+             _selectedLeague = _tournaments.first;
+           }
         }
         _filterMatches();
       }
@@ -65,7 +73,7 @@ class DataProvider extends ChangeNotifier {
     }
   }
 
-  // --- API ---
+  // --- ЗАГРУЗКА ДАННЫХ ---
 
   Future<void> fetchTournaments() async {
     try {
@@ -103,26 +111,29 @@ class DataProvider extends ChangeNotifier {
     }
   }
 
-  // --- TOGGLE FAVORITES ---
+  // --- УПРАВЛЕНИЕ ИЗБРАННЫМ ---
 
-  Future<void> toggleTeamFavorite(int teamId) async {
+  Future<void> toggleTeamFavorite(int teamId, [bool? forceState]) async {
     final isFav = isTeamFavorite(teamId);
+    // Если передан forceState (например true = удалить), проверяем совпадение
+    if (forceState != null && forceState != isFav) return; 
+
     try {
-      // Оптимистичное обновление (сразу меняем UI)
       if (isFav) {
+        // Удаляем локально сразу для отзывчивости
         _favoriteTeams.removeWhere((t) => t.id == teamId);
+        notifyListeners();
         await _client.dio.delete('/users/favorites/teams/$teamId');
       } else {
-        // Мы не можем добавить объект Team без запроса, но для UI пока так.
-        // Лучше перезагрузить список после запроса.
         await _client.dio.post('/users/favorites/teams/$teamId');
-        // Обновляем список полностью, чтобы получить данные команды
+        // Подгружаем актуальный список, чтобы получить данные команды (имя, лого)
         final res = await _client.dio.get('/users/me/favorites/teams');
         _favoriteTeams = (res.data as List).map((e) => Team.fromJson(e)).toList();
+        notifyListeners();
       }
-      notifyListeners();
     } catch (e) {
-      print("Error team fav: $e");
+      print("Error toggling team fav: $e");
+      await fetchFavorites(); // Откат при ошибке
     }
   }
 
@@ -131,19 +142,21 @@ class DataProvider extends ChangeNotifier {
     try {
       if (isFav) {
         _favoriteTournaments.removeWhere((t) => t.id == tournamentId);
+        notifyListeners();
         await _client.dio.delete('/users/favorites/tournaments/$tournamentId');
       } else {
         await _client.dio.post('/users/favorites/tournaments/$tournamentId');
         final res = await _client.dio.get('/users/me/favorites/tournaments');
         _favoriteTournaments = (res.data as List).map((e) => Tournament.fromJson(e)).toList();
+        notifyListeners();
       }
-      notifyListeners();
     } catch (e) {
-      print("Error tourn fav: $e");
+      print("Error toggling tourn fav: $e");
     }
   }
 
-  // Хелперы для UI
+  // --- ЛОГИКА UI ---
+
   bool isTeamFavorite(int id) => _favoriteTeams.any((t) => t.id == id);
   bool isLeagueFavorite(int id) => _favoriteTournaments.any((t) => t.id == id);
 
@@ -161,6 +174,7 @@ class DataProvider extends ChangeNotifier {
           .where((m) => m.tournament.id == _selectedLeague!.id)
           .toList();
     }
+    // Сортировка по дате
     _filteredMatches.sort((a, b) => a.dateTime.compareTo(b.dateTime));
   }
 }

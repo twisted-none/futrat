@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 
@@ -6,7 +6,7 @@ from datetime import datetime
 class UserCreate(BaseModel):
     username: str
     email: str 
-    password: str   
+    password: str
 
 class UserLogin(BaseModel):
     email: str
@@ -24,7 +24,6 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: str
-    
     class Config:
         from_attributes = True
 
@@ -59,15 +58,26 @@ class PlayerResponse(BaseModel):
     class Config:
         from_attributes = True
 
+# --- Match Events ---
+class MatchEventResponse(BaseModel):
+    id: int
+    type: str
+    minute: int
+    player: PlayerResponse # Вложенный игрок
+    class Config:
+        from_attributes = True
+
 class MatchResponse(BaseModel):
     id: int
     date_time: datetime
     status: str
     score_home: Optional[int]
     score_away: Optional[int]
+    round: int # Тур
     home_team: TeamResponse
     away_team: TeamResponse
     tournament: TournamentResponse
+    events: List[MatchEventResponse] = [] # Список голов
 
     class Config:
         from_attributes = True

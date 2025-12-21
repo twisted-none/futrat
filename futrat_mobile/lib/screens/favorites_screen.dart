@@ -17,10 +17,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    // Теперь у нас 3 вкладки: Команды, Турниры, Игроки
     _tabController = TabController(length: 3, vsync: this);
-    
-    // Подгружаем данные при входе
     Future.microtask(() => 
       Provider.of<DataProvider>(context, listen: false).fetchFavorites()
     );
@@ -50,7 +47,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
             unselectedLabelColor: Colors.grey,
             tabs: const [
               Tab(text: "Клубы", icon: Icon(Icons.shield_outlined)),
-              Tab(text: "Лиги", icon: Icon(Icons.emoji_events_outlined)), // Новая вкладка
+              Tab(text: "Лиги", icon: Icon(Icons.emoji_events_outlined)),
               Tab(text: "Игроки", icon: Icon(Icons.person_outline)),
             ],
           ),
@@ -58,13 +55,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
         body: TabBarView(
           controller: _tabController,
           children: [
-            // 1. Вкладка КОМАНДЫ
             _buildTeamsList(data),
-            
-            // 2. Вкладка ТУРНИРЫ (ЛИГИ)
             _buildTournamentsList(data),
-            
-            // 3. Вкладка ИГРОКИ
             _buildPlayersList(data),
           ],
         ),
@@ -72,11 +64,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
     );
   }
 
-  // --- СПИСОК КОМАНД ---
   Widget _buildTeamsList(DataProvider data) {
-    if (data.favoriteTeams.isEmpty) {
-      return _buildEmptyState("Нет любимых команд", Icons.shield_outlined);
-    }
+    if (data.favoriteTeams.isEmpty) return _buildEmptyState("Нет любимых команд", Icons.shield_outlined);
+    
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: data.favoriteTeams.length,
@@ -86,16 +76,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
           margin: const EdgeInsets.only(bottom: 10),
           decoration: _cardDecoration(),
           child: ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: Colors.white10,
-              child: Icon(Icons.shield, color: Colors.white),
-            ),
+            leading: _buildLogo(team.logoUrl), // ПОКАЗЫВАЕМ ЛОГОТИП
             title: Text(team.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             subtitle: Text(team.country ?? "Unknown", style: const TextStyle(color: Colors.grey)),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              // Удаляем (true означает "она сейчас в избранном, удали")
-              onPressed: () => data.toggleTeamFavorite(team.id),
+              onPressed: () => data.toggleTeamFavorite(team.id, true),
             ),
           ),
         );
@@ -103,13 +89,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
     );
   }
 
-  // --- СПИСОК ТУРНИРОВ (НОВОЕ) ---
   Widget _buildTournamentsList(DataProvider data) {
-    // В DataProvider должен быть геттер favoriteTournaments
-    // Если его нет, убедись, что обновил DataProvider кодом ниже
-    if (data.favoriteTournaments.isEmpty) {
-      return _buildEmptyState("Нет любимых лиг", Icons.emoji_events_outlined);
-    }
+    if (data.favoriteTournaments.isEmpty) return _buildEmptyState("Нет любимых лиг", Icons.emoji_events_outlined);
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: data.favoriteTournaments.length,
@@ -127,23 +109,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
             subtitle: Text(tournament.country ?? "Europe", style: const TextStyle(color: Colors.grey)),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              onPressed: () {
-                // Если метода нет, добавь его в DataProvider (см. ниже)
-                try {
-                   data.toggleTournamentFavorite(tournament.id); 
-                } catch(e) {
-                   print("Метод toggleTournamentFavorite не найден в Provider");
-                }
-              },
+              onPressed: () => data.toggleTournamentFavorite(tournament.id),
             ),
             onTap: () {
-               // При клике можно переходить к матчам этой лиги
                data.selectLeague(tournament);
-               // Перекидываем пользователя на экран матчей (Tab 0)
-               // (Требует доступа к навигации MainScaffold, пока оставим просто выбор)
-               ScaffoldMessenger.of(context).showSnackBar(
-                 SnackBar(content: Text("Лига ${tournament.name} выбрана! Перейдите в Матчи."))
-               );
+               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Лига выбрана")));
             },
           ),
         );
@@ -151,11 +121,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
     );
   }
 
-  // --- СПИСОК ИГРОКОВ ---
   Widget _buildPlayersList(DataProvider data) {
-    if (data.favoritePlayers.isEmpty) {
-      return _buildEmptyState("Нет любимых игроков", Icons.person_off_outlined);
-    }
+    if (data.favoritePlayers.isEmpty) return _buildEmptyState("Нет любимых игроков", Icons.person_off_outlined);
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: data.favoritePlayers.length,
@@ -170,13 +138,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
               child: Icon(Icons.person, color: Colors.white),
             ),
             title: Text(player.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            subtitle: Text("Голы: ${player.goals} | Ассисты: ${player.assists}", style: const TextStyle(color: AppTheme.neonPurple)),
+            subtitle: Text("Голы: ${player.goals}", style: const TextStyle(color: AppTheme.neonPurple)),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              onPressed: () {
-                 // Заглушка, если метода нет
-                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Функция удаления игрока в разработке")));
-              },
+              onPressed: () {}, // Заглушка
             ),
           ),
         );
@@ -184,7 +149,19 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
     );
   }
 
-  // Вспомогательный стиль для карточек
+  // Виджет для логотипа (как на главном экране)
+  Widget _buildLogo(String? url) {
+    if (url == null || url.isEmpty) return const CircleAvatar(backgroundColor: Colors.white10, child: Icon(Icons.shield, color: Colors.white));
+    
+    if (url.endsWith('.svg')) {
+       return const CircleAvatar(backgroundColor: Colors.white10, child: Icon(Icons.shield, color: AppTheme.neonPurple)); 
+    }
+    return Image.network(
+      url, height: 40, width: 40,
+      errorBuilder: (_,__,___) => const CircleAvatar(backgroundColor: Colors.white10, child: Icon(Icons.shield, color: Colors.white)),
+    );
+  }
+
   BoxDecoration _cardDecoration() {
     return BoxDecoration(
       color: Colors.white.withOpacity(0.05),
@@ -193,7 +170,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
     );
   }
 
-  // Экран "Пусто"
   Widget _buildEmptyState(String text, IconData icon) {
     return Center(
       child: Column(
