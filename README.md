@@ -6,13 +6,33 @@
 
 ## 📱 Демонстрация (Скриншоты)
 
-| Экран Входа | Главная (Матчи) | Меню Лиг |
-|:---:|:---:|:---:|
-| ![Скриншот экрана входа с неоновым дизайном](docs/screenshots/login.png) <br> *Авторизация и Регистрация* | ![Скриншот списка матчей с логотипами](docs/screenshots/home.png) <br> *Список матчей тура* | ![Скриншот открытого бургер-меню](docs/screenshots/drawer.png) <br> *Выбор турнира* |
+*Авторизация и Регистрация* 
 
-| Детали Матча | Избранное | Профиль |
-|:---:|:---:|:---:|
-| ![Скриншот деталей матча с голами](docs/screenshots/match_detail.png) <br> *Счет и авторы голов* | ![Скриншот экрана избранного](docs/screenshots/favorites.png) <br> *Любимые клубы и лиги* | ![Скриншот профиля](docs/screenshots/profile.png) <br> *Профиль пользователя* |
+<img width="576" height="1280" alt="image" src="https://github.com/user-attachments/assets/38e208d5-f12f-4aa3-8328-46ebeca331bd" /> 
+<img width="576" height="1280" alt="image" src="https://github.com/user-attachments/assets/a67304f8-955c-4caa-9e59-1a1794616568" />
+ 
+*Список матчей тура* 
+
+<img width="576" height="1280" alt="image" src="https://github.com/user-attachments/assets/0efb1c66-487d-4995-8151-5e2f0c52181c" /> 
+<img width="576" height="1280" alt="image" src="https://github.com/user-attachments/assets/72df1706-55ab-4ec8-90ac-4094944c8405" />
+<img width="576" height="1280" alt="image" src="https://github.com/user-attachments/assets/77edb45c-7f85-45e7-afe0-a1da7b5c6e28" />
+
+*Выбор турнира*
+
+<img width="576" height="1280" alt="image" src="https://github.com/user-attachments/assets/1b4dae76-86d6-4ad3-a9cc-ff0e7c76b12b" />
+
+*Счет и авторы голов*
+
+<img width="576" height="1280" alt="image" src="https://github.com/user-attachments/assets/ef96f8f7-86ec-4f76-bc0b-49c3b196f829" />
+ 
+*Любимые клубы и лиги*
+
+<img width="576" height="1280" alt="image" src="https://github.com/user-attachments/assets/a807ec31-2007-4804-893b-a9f7872f7154" />
+
+*Профиль пользователя*
+
+<img width="576" height="1280" alt="image" src="https://github.com/user-attachments/assets/f9d85eb0-ee47-4ab4-8ba5-07eb554f8820" />
+
 
 ---
 
