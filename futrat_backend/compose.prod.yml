@@ -1,0 +1,71 @@
+name: futrat-production
+
+# Only Futrat is managed here. Caddy and PostgreSQL belong to existing projects.
+services:
+  futrat-api:
+    image: ${FUTRAT_IMAGE:-futrat-api:production}
+    build:
+      context: .
+      target: production
+    restart: unless-stopped
+    init: true
+    command:
+      - uvicorn
+      - app.main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --workers
+      - "1"
+      - --proxy-headers
+      # This network must only contain Caddy and Futrat (see deploy/README.md).
+      - --forwarded-allow-ips=*
+    environment:
+      APP_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?Configure a dedicated futrat database URL}
+      SECRET_KEY: ${SECRET_KEY:?Generate a private signing key}
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+      GOAL_API_KEY: ${GOAL_API_KEY:-}
+      GOAL_API_DAILY_LIMIT: ${GOAL_API_DAILY_LIMIT:-900}
+    # No published host ports and no bind mount of the source tree.
+    expose:
+      - "8000"
+    networks:
+      proxy:
+        aliases:
+          - futrat-api
+      database: {}
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    stop_grace_period: 45s
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/health/ready', timeout=10).close()"
+      interval: 30s
+      timeout: 12s
+      start_period: 60s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+networks:
+  proxy:
+    external: true
+    name: ${FUTRAT_PROXY_NETWORK:?Set the dedicated Caddy-Futrat network name}
+  database:
+    external: true
+    name: ${FUTRAT_DATABASE_NETWORK:?Set the PostgreSQL-Futrat network name}

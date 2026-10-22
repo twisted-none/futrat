@@ -1,7 +1,4 @@
-version: '3.8'
-
 services:
-  # Сервис бекенда (FastAPI)
   web:
     build: .
     container_name: futrat_backend
@@ -11,16 +8,15 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/futrat_db
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+psycopg2://postgres:postgres@db:5432/futrat_db
       - SECRET_KEY=super_secret_key_change_me
       - ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
     depends_on:
-      # Ждем, пока база скажет "Я здорова", прежде чем запускать бекенд
       db:
         condition: service_healthy
 
-  # Сервис базы данных (PostgreSQL)
   db:
     image: postgres:15-alpine
     container_name: futrat_db
@@ -32,7 +28,6 @@ services:
       - POSTGRES_DB=futrat_db
     ports:
       - "5432:5432"
-    # Добавляем проверку здоровья базы
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s

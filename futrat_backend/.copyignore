@@ -1,0 +1,38 @@
+# Local Python environments and generated caches
+.venv/
+.venv-*/
+venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Local tools, editor settings, logs and backups
+.git/
+.idea/
+.vscode/
+.tools/
+*.log
+backups/
+
+# Development and test files (production uses compose.prod.yml)
+tests/
+docs/
+scripts/
+docker-compose.yml
+compose.test.yml
+pytest.ini
+requirements-dev.in
+requirements-dev.txt
+requirements.in
+.python-version
+/README.md
+
+# Keep .env, deploy/.env.production, app/, Dockerfile, .dockerignore,
+# compose.prod.yml, requirements.txt and deploy/ available for transfer.

@@ -1,0 +1,19 @@
+# Import this site block into the EXISTING Caddyfile (do not replace other sites).
+# Use a compatible Caddy version; validated locally with 2.11.7.
+# Merge `default_sni 176.108.255.248` into the existing global options block.
+https://176.108.255.248 {
+    tls {
+        issuer acme https://acme-v02.api.letsencrypt.org/directory {
+            profile shortlived
+        }
+    }
+
+    request_body {
+        max_size 1MB
+    }
+    reverse_proxy futrat-api:8000
+    header {
+        X-Content-Type-Options nosniff
+        -Server
+    }
+}

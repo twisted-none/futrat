@@ -1,44 +1,69 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:dio/dio.dart';
 import '../core/api_client.dart';
 import '../models/all_models.dart';
+import '../core/match_status.dart';
 
 class DataProvider extends ChangeNotifier {
   final ApiClient _client = ApiClient();
 
-  // --- ДАННЫЕ ---
   List<MatchModel> _allMatches = [];
   List<MatchModel> _filteredMatches = [];
   List<Tournament> _tournaments = [];
   Tournament? _selectedLeague;
 
-  // --- ИЗБРАННОЕ ---
   List<Team> _favoriteTeams = [];
   List<Tournament> _favoriteTournaments = [];
   List<Player> _favoritePlayers = [];
-
-  // --- ЛИДЕРБОРД ---
-  final List<Map<String, dynamic>> _leaderboard = [
-    {"username": "Striker99", "points": 150},
-    {"username": "Admin", "points": 120},
-    {"username": "FutMaster", "points": 99},
-  ];
+  List<LeaderboardEntry> _leaderboard = [];
+  List<StandingRow> _currentStandings = [];
 
   bool _isLoading = false;
+  int _selectedRound = 1;
+  Timer? _liveUpdateTimer;
+  bool _liveBusy = false, _disposed = false, _updatesEnabled = true;
+  final Map<int, Set<int>> _collapsedLeagues = {};
 
-  // --- ГЕТТЕРЫ ---
+  bool isLeagueCollapsed(int feedId, int leagueId) =>
+      _collapsedLeagues[feedId]?.contains(leagueId) ?? false;
+
+  void toggleLeagueCollapsed(int feedId, int leagueId) {
+    final leagues = _collapsedLeagues.putIfAbsent(feedId, () => <int>{});
+    if (!leagues.remove(leagueId)) leagues.add(leagueId);
+    notifyListeners();
+  }
+
+  final Tournament todayVirtual = Tournament(
+    id: -1,
+    name: "Матчи сегодня",
+    type: "Virtual",
+  );
+  final Tournament liveVirtual = Tournament(
+    id: -2,
+    name: "Матчи сейчас",
+    type: "Virtual",
+  );
+
   List<MatchModel> get matches => _filteredMatches;
-  List<Tournament> get tournaments => _tournaments;
+  List<MatchModel> get allMatches => List.unmodifiable(_allMatches);
+  List<Tournament> get tournaments {
+    final favorites = _favoriteTournaments.map((item) => item.id).toSet();
+    return [
+      ..._tournaments.where((item) => favorites.contains(item.id)),
+      ..._tournaments.where((item) => !favorites.contains(item.id)),
+    ];
+  }
+
   Tournament? get selectedLeague => _selectedLeague;
-  List<Map<String, dynamic>> get leaderboard => _leaderboard;
-  
+  List<LeaderboardEntry> get leaderboard => _leaderboard;
   List<Team> get favoriteTeams => _favoriteTeams;
   List<Tournament> get favoriteTournaments => _favoriteTournaments;
   List<Player> get favoritePlayers => _favoritePlayers;
-  
+  List<StandingRow> get currentStandings => _currentStandings;
   bool get isLoading => _isLoading;
+  int get selectedRound => _selectedRound;
 
-  // --- ИНИЦИАЛИЗАЦИЯ ---
   Future<void> initData() async {
     _isLoading = true;
     notifyListeners();
@@ -47,134 +72,316 @@ class DataProvider extends ChangeNotifier {
         fetchTournaments(),
         fetchMatches(),
         fetchFavorites(),
+        fetchLeaderboard(),
       ]);
-      
-      // Выбор лиги по умолчанию (сначала любимые, потом АПЛ, потом первая попавшаяся)
+
       if (_tournaments.isNotEmpty && _selectedLeague == null) {
-        if (_favoriteTournaments.isNotEmpty) {
-           // Ищем объект турнира в общем списке, который соответствует любимому
-           try {
-             _selectedLeague = _tournaments.firstWhere((t) => t.id == _favoriteTournaments.first.id);
-           } catch (e) {
-             _selectedLeague = _tournaments.first;
-           }
-        } else {
-           try {
-             _selectedLeague = _tournaments.firstWhere((t) => t.name == "Premier League");
-           } catch (e) {
-             _selectedLeague = _tournaments.first;
-           }
-        }
+        _selectedLeague = todayVirtual;
         _filterMatches();
       }
+      _startLiveUpdates();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // --- ЗАГРУЗКА ДАННЫХ ---
+  void _startLiveUpdates() {
+    _liveUpdateTimer?.cancel();
+    if (!_updatesEnabled || _disposed) return;
+    _liveUpdateTimer = Timer.periodic(
+      const Duration(seconds: 60),
+      (_) => fetchLiveUpdates(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _liveUpdateTimer?.cancel();
+    super.dispose();
+  }
 
   Future<void> fetchTournaments() async {
     try {
-      final response = await _client.dio.get('/api/tournaments');
-      _tournaments = (response.data as List).map((e) => Tournament.fromJson(e)).toList();
+      final res = await _client.dio.get('/api/tournaments');
+      _tournaments = (res.data as List)
+          .map((e) => Tournament.fromJson(e))
+          .toList();
     } catch (e) {
       print("Error fetching tournaments: $e");
     }
   }
 
-  Future<void> fetchMatches() async {
+  Future<void> fetchMatches({bool preserveRound = false}) async {
     try {
-      final response = await _client.dio.get('/api/matches');
-      _allMatches = (response.data as List).map((e) => MatchModel.fromJson(e)).toList();
-      _filterMatches();
+      final res = await _client.dio.get('/api/matches');
+      _allMatches = (res.data as List)
+          .map((e) => MatchModel.fromJson(e))
+          .toList();
+      if (!_disposed) _filterMatches(preserveRound: preserveRound);
     } catch (e) {
       print("Error fetching matches: $e");
     }
   }
 
-  Future<void> fetchFavorites() async {
+  void setLiveUpdatesActive(bool active) {
+    _updatesEnabled = active;
+    if (active) {
+      _startLiveUpdates();
+      fetchLiveUpdates();
+    } else {
+      _liveUpdateTimer?.cancel();
+    }
+  }
+
+  Future<void> fetchLiveUpdates() async {
+    if (_liveBusy || _disposed || !_updatesEnabled) return;
+    _liveBusy = true;
     try {
-      final teamRes = await _client.dio.get('/users/me/favorites/teams');
-      _favoriteTeams = (teamRes.data as List).map((e) => Team.fromJson(e)).toList();
+      final now = DateTime.now();
+      final ids = _allMatches
+          .where(
+            (m) =>
+                isLiveStatus(m.status) ||
+                (m.dateTime.isAfter(now.subtract(const Duration(hours: 6))) &&
+                    m.dateTime.isBefore(now.add(const Duration(minutes: 15)))),
+          )
+          .map((m) => m.id)
+          .take(500)
+          .toList();
+      final response = await _client.dio.get(
+        '/api/matches/updates',
+        queryParameters: {'ids': ids},
+        options: Options(listFormat: ListFormat.multi),
+      );
+      if (_disposed) return;
+      final updates = {
+        for (final row in response.data as List)
+          row['id'] as int: Map<String, dynamic>.from(row),
+      };
+      final known = _allMatches.map((m) => m.id).toSet();
+      if (updates.keys.any((id) => !known.contains(id))) {
+        await fetchMatches(preserveRound: true);
+      } else {
+        _allMatches = _allMatches
+            .map(
+              (m) => updates.containsKey(m.id)
+                  ? m.withLiveUpdate(updates[m.id]!)
+                  : m,
+            )
+            .toList();
+        _filterMatches(preserveRound: true);
+      }
+    } catch (error) {
+      debugPrint('Live update unavailable: ${error.runtimeType}');
+    } finally {
+      _liveBusy = false;
+    }
+  }
 
-      final tournRes = await _client.dio.get('/users/me/favorites/tournaments');
-      _favoriteTournaments = (tournRes.data as List).map((e) => Tournament.fromJson(e)).toList();
+  Future<void> fetchStandings(int tournamentId) async {
+    try {
+      final res = await _client.dio.get(
+        '/api/tournaments/$tournamentId/standings',
+      );
+      _currentStandings = (res.data as List)
+          .map((e) => StandingRow.fromJson(e))
+          .toList();
+      notifyListeners();
+    } catch (e) {
+      _currentStandings = [];
+      notifyListeners();
+    }
+  }
 
-      final playerRes = await _client.dio.get('/users/me/favorites/players');
-      _favoritePlayers = (playerRes.data as List).map((e) => Player.fromJson(e)).toList();
-      
+  Future<void> fetchFavorites() async {
+    if (await _client.storage.read(key: 'auth_token') == null) {
+      clearFavorites();
+      return;
+    }
+    try {
+      final t = await _client.dio.get('/users/me/favorites/teams');
+      _favoriteTeams = (t.data as List).map((e) => Team.fromJson(e)).toList();
+
+      final tr = await _client.dio.get('/users/me/favorites/tournaments');
+      _favoriteTournaments = (tr.data as List)
+          .map((e) => Tournament.fromJson(e))
+          .toList();
+
+      final p = await _client.dio.get('/users/me/favorites/players');
+      _favoritePlayers = (p.data as List)
+          .map((e) => Player.fromJson(e))
+          .toList();
       notifyListeners();
     } catch (e) {
       print("Error fetching favorites: $e");
     }
   }
 
-  // --- УПРАВЛЕНИЕ ИЗБРАННЫМ ---
-
-  Future<void> toggleTeamFavorite(int teamId, [bool? forceState]) async {
-    final isFav = isTeamFavorite(teamId);
-    // Если передан forceState (например true = удалить), проверяем совпадение
-    if (forceState != null && forceState != isFav) return; 
-
+  Future<void> fetchLeaderboard() async {
     try {
-      if (isFav) {
-        // Удаляем локально сразу для отзывчивости
-        _favoriteTeams.removeWhere((t) => t.id == teamId);
-        notifyListeners();
-        await _client.dio.delete('/users/favorites/teams/$teamId');
-      } else {
-        await _client.dio.post('/users/favorites/teams/$teamId');
-        // Подгружаем актуальный список, чтобы получить данные команды (имя, лого)
-        final res = await _client.dio.get('/users/me/favorites/teams');
-        _favoriteTeams = (res.data as List).map((e) => Team.fromJson(e)).toList();
-        notifyListeners();
-      }
+      final res = await _client.dio.get('/users/leaderboard');
+      _leaderboard = (res.data as List)
+          .map((e) => LeaderboardEntry.fromJson(e))
+          .toList();
+      notifyListeners();
     } catch (e) {
-      print("Error toggling team fav: $e");
-      await fetchFavorites(); // Откат при ошибке
+      print("Error fetching leaderboard: $e");
     }
   }
 
-  Future<void> toggleTournamentFavorite(int tournamentId) async {
-    final isFav = isLeagueFavorite(tournamentId);
+  Future<MatchModel?> getMatchDetails(int matchId) async {
+    try {
+      final response = await _client.dio.get('/api/matches/$matchId');
+      return MatchModel.fromJson(response.data);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<bool> ratePlayer(int lineupId, double rating) async {
+    try {
+      await _client.dio.post(
+        '/api/rate-player',
+        data: {"lineup_id": lineupId, "rating": rating},
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> toggleTeamFavorite(int id, [bool? f]) async {
+    final isFav = isTeamFavorite(id);
+    if (f != null && f != isFav) return;
     try {
       if (isFav) {
-        _favoriteTournaments.removeWhere((t) => t.id == tournamentId);
-        notifyListeners();
-        await _client.dio.delete('/users/favorites/tournaments/$tournamentId');
+        _favoriteTeams.removeWhere((t) => t.id == id);
+        await _client.dio.delete('/users/favorites/teams/$id');
       } else {
-        await _client.dio.post('/users/favorites/tournaments/$tournamentId');
-        final res = await _client.dio.get('/users/me/favorites/tournaments');
-        _favoriteTournaments = (res.data as List).map((e) => Tournament.fromJson(e)).toList();
-        notifyListeners();
+        await _client.dio.post('/users/favorites/teams/$id');
+        final res = await _client.dio.get('/users/me/favorites/teams');
+        _favoriteTeams = (res.data as List)
+            .map((e) => Team.fromJson(e))
+            .toList();
       }
+      notifyListeners();
+    } catch (e) {
+      print("Error toggling team fav: $e");
+    }
+  }
+
+  Future<void> toggleTournamentFavorite(int id) async {
+    final isFav = isLeagueFavorite(id);
+    try {
+      if (isFav) {
+        _favoriteTournaments.removeWhere((t) => t.id == id);
+        await _client.dio.delete('/users/favorites/tournaments/$id');
+      } else {
+        await _client.dio.post('/users/favorites/tournaments/$id');
+        final res = await _client.dio.get('/users/me/favorites/tournaments');
+        _favoriteTournaments = (res.data as List)
+            .map((e) => Tournament.fromJson(e))
+            .toList();
+      }
+      notifyListeners();
     } catch (e) {
       print("Error toggling tourn fav: $e");
     }
   }
 
-  // --- ЛОГИКА UI ---
+  Future<void> togglePlayerFavorite(int id) async {
+    try {
+      if (isPlayerFavorite(id)) {
+        await _client.dio.delete('/users/favorites/players/$id');
+      } else {
+        await _client.dio.post('/users/favorites/players/$id');
+      }
+      final response = await _client.dio.get('/users/me/favorites/players');
+      _favoritePlayers = (response.data as List)
+          .map((item) => Player.fromJson(item))
+          .toList();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error toggling player favorite: $e');
+    }
+  }
 
-  bool isTeamFavorite(int id) => _favoriteTeams.any((t) => t.id == id);
-  bool isLeagueFavorite(int id) => _favoriteTournaments.any((t) => t.id == id);
-
-  void selectLeague(Tournament league) {
-    _selectedLeague = league;
-    _filterMatches();
+  void clearFavorites() {
+    _favoriteTeams = [];
+    _favoriteTournaments = [];
+    _favoritePlayers = [];
     notifyListeners();
   }
 
-  void _filterMatches() {
-    if (_selectedLeague == null) {
-      _filteredMatches = _allMatches;
+  bool isTeamFavorite(int id) => _favoriteTeams.any((t) => t.id == id);
+  bool isLeagueFavorite(int id) => _favoriteTournaments.any((t) => t.id == id);
+  bool isPlayerFavorite(int id) => _favoritePlayers.any((p) => p.id == id);
+
+  void setSelectedRound(int round) {
+    _selectedRound = round;
+    notifyListeners();
+  }
+
+  void selectLeague(Tournament l) {
+    _selectedLeague = l;
+    _filterMatches();
+    if (l.id > 0) fetchStandings(l.id);
+    notifyListeners();
+  }
+
+  void _filterMatches({bool preserveRound = false}) {
+    final previousRound = _selectedRound;
+    if (_selectedLeague == null) return;
+
+    if (_selectedLeague!.id == -1) {
+      final now = DateTime.now();
+      // Убираем DELAYED из раздела "Матчи сегодня"
+      _filteredMatches = _allMatches
+          .where(
+            (m) =>
+                m.dateTime.year == now.year &&
+                m.dateTime.month == now.month &&
+                m.dateTime.day == now.day &&
+                m.status != "DELAYED",
+          )
+          .toList();
+    } else if (_selectedLeague!.id == -2) {
+      final now = DateTime.now();
+      _filteredMatches = _allMatches.where((m) => m.isLiveAt(now)).toList();
     } else {
+      // Обычный турнир — тут отложенные матчи ОСТАЮТСЯ в своих турах
       _filteredMatches = _allMatches
           .where((m) => m.tournament.id == _selectedLeague!.id)
           .toList();
+
+      // Но при поиске ТЕКУЩЕГО тура (чтобы авто-скролл сработал) мы их игнорируем
+      final validMatches = _filteredMatches
+          .where(
+            (m) =>
+                m.status != "CANCELLED" &&
+                m.status != "POSTPONED" &&
+                m.status != "DELAYED",
+          )
+          .toList();
+
+      if (validMatches.isNotEmpty) {
+        int cur = 1;
+        for (var m in validMatches) {
+          if (m.status != "SCHEDULED" && m.round > cur) cur = m.round;
+        }
+        if (_selectedLeague?.name == "Champions League" && cur > 8) {
+          _selectedRound = 8;
+        } else {
+          _selectedRound = cur;
+        }
+      } else {
+        _selectedRound = 1;
+      }
     }
-    // Сортировка по дате
+    if (preserveRound) _selectedRound = previousRound;
     _filteredMatches.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    notifyListeners();
   }
 }

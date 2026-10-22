@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../core/app_theme.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
 
 class MainScaffold extends StatelessWidget {
   final Widget child;
@@ -8,21 +9,36 @@ class MainScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return Scaffold(
-      body: child, // Фон управляется внутри child (экранов)
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _calculateSelectedIndex(context),
-        onTap: (index) => _onItemTapped(index, context),
-        backgroundColor: const Color(0xFF1E1E1E),
-        selectedItemColor: AppTheme.neonPurple,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed, // Чтобы поместилось 4 иконки
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.sports_soccer), label: 'Матчи'),
-          BottomNavigationBarItem(icon: Icon(Icons.leaderboard), label: 'Прогнозы'), // НОВОЕ
-          BottomNavigationBarItem(icon: Icon(Icons.star), label: 'Избранное'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Профиль'),
-        ],
+      body: child,
+      bottomNavigationBar: DecoratedBox(
+        position: DecorationPosition.foreground,
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: themeProvider.currentTheme.cardBorder),
+          ),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _calculateSelectedIndex(context),
+          onTap: (index) => _onItemTapped(index, context),
+          selectedItemColor: themeProvider.currentTheme.accentColor,
+          unselectedItemColor: themeProvider.currentTheme.dimTextColor,
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.sports_soccer),
+              label: 'Матчи',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.leaderboard),
+              label: 'Прогнозы',
+            ),
+            BottomNavigationBarItem(icon: Icon(Icons.star), label: 'Избранное'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Профиль'),
+          ],
+        ),
       ),
     );
   }
@@ -37,10 +53,18 @@ class MainScaffold extends StatelessWidget {
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
-      case 0: context.go('/home'); break;
-      case 1: context.go('/leaderboard'); break;
-      case 2: context.go('/favorites'); break;
-      case 3: context.go('/profile'); break;
+      case 0:
+        context.go('/home');
+        break;
+      case 1:
+        context.go('/leaderboard');
+        break;
+      case 2:
+        context.go('/favorites');
+        break;
+      case 3:
+        context.go('/profile');
+        break;
     }
   }
 }

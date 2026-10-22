@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/data_provider.dart';
+import '../providers/theme_provider.dart';
 import '../core/app_theme.dart';
-import '../models/all_models.dart';
+import 'package:go_router/go_router.dart';
+import 'team_screen.dart';
+import 'player_screen.dart';
+import '../widgets/match_tile.dart';
+import '../widgets/football_logo.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -11,15 +16,16 @@ class FavoritesScreen extends StatefulWidget {
   State<FavoritesScreen> createState() => _FavoritesScreenState();
 }
 
-class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProviderStateMixin {
+class _FavoritesScreenState extends State<FavoritesScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    Future.microtask(() => 
-      Provider.of<DataProvider>(context, listen: false).fetchFavorites()
+    Future.microtask(
+      () => Provider.of<DataProvider>(context, listen: false).fetchFavorites(),
     );
   }
 
@@ -32,19 +38,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     final data = Provider.of<DataProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final currentTheme = themeProvider.currentTheme;
 
     return Container(
-      decoration: AppTheme.mainGradient,
+      decoration: currentTheme.background,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: const Text("Избранное"),
-          centerTitle: true,
           bottom: TabBar(
             controller: _tabController,
-            indicatorColor: AppTheme.neonPurple,
-            labelColor: AppTheme.neonPurple,
-            unselectedLabelColor: Colors.grey,
+            indicatorColor: currentTheme.accentColor,
+            labelColor: currentTheme.accentColor,
+            indicatorWeight: 3,
             tabs: const [
               Tab(text: "Клубы", icon: Icon(Icons.shield_outlined)),
               Tab(text: "Лиги", icon: Icon(Icons.emoji_events_outlined)),
@@ -55,30 +62,42 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
         body: TabBarView(
           controller: _tabController,
           children: [
-            _buildTeamsList(data),
-            _buildTournamentsList(data),
-            _buildPlayersList(data),
+            _buildTeamsList(data, currentTheme),
+            _buildTournamentsList(data, currentTheme),
+            _buildPlayersList(data, currentTheme),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTeamsList(DataProvider data) {
-    if (data.favoriteTeams.isEmpty) return _buildEmptyState("Нет любимых команд", Icons.shield_outlined);
-    
+  Widget _buildTeamsList(DataProvider data, AppCustomTheme theme) {
+    if (data.favoriteTeams.isEmpty)
+      return _buildEmptyState("Нет любимых команд", Icons.shield_outlined);
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: data.favoriteTeams.length,
       itemBuilder: (ctx, i) {
         final team = data.favoriteTeams[i];
         return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          decoration: _cardDecoration(),
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: theme.panel(radius: 12),
           child: ListTile(
-            leading: _buildLogo(team.logoUrl), // ПОКАЗЫВАЕМ ЛОГОТИП
-            title: Text(team.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            subtitle: Text(team.country ?? "Unknown", style: const TextStyle(color: Colors.grey)),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => TeamScreen(teamId: team.id, name: team.name),
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            leading: _buildThemedLogo(team.logoUrl, theme),
+            title: Text(
+              team.name,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
               onPressed: () => data.toggleTeamFavorite(team.id, true),
@@ -89,59 +108,73 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
     );
   }
 
-  Widget _buildTournamentsList(DataProvider data) {
-    if (data.favoriteTournaments.isEmpty) return _buildEmptyState("Нет любимых лиг", Icons.emoji_events_outlined);
-
+  Widget _buildTournamentsList(DataProvider data, AppCustomTheme theme) {
+    if (data.favoriteTournaments.isEmpty)
+      return _buildEmptyState("Нет любимых лиг", Icons.emoji_events_outlined);
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: data.favoriteTournaments.length,
       itemBuilder: (ctx, i) {
         final tournament = data.favoriteTournaments[i];
         return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          decoration: _cardDecoration(),
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: theme.panel(radius: 12),
           child: ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: Colors.white10,
-              child: Icon(Icons.emoji_events, color: AppTheme.neonPurple),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
             ),
-            title: Text(tournament.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            subtitle: Text(tournament.country ?? "Europe", style: const TextStyle(color: Colors.grey)),
+            leading: _buildThemedLogo(tournament.logoUrl, theme),
+            title: Text(
+              tournament.name,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            onTap: () {
+              data.selectLeague(tournament);
+              context.go('/home');
+            },
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
               onPressed: () => data.toggleTournamentFavorite(tournament.id),
             ),
-            onTap: () {
-               data.selectLeague(tournament);
-               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Лига выбрана")));
-            },
           ),
         );
       },
     );
   }
 
-  Widget _buildPlayersList(DataProvider data) {
-    if (data.favoritePlayers.isEmpty) return _buildEmptyState("Нет любимых игроков", Icons.person_off_outlined);
-
+  Widget _buildPlayersList(DataProvider data, AppCustomTheme theme) {
+    if (data.favoritePlayers.isEmpty)
+      return _buildEmptyState("Нет любимых игроков", Icons.person_off_outlined);
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: data.favoritePlayers.length,
       itemBuilder: (ctx, i) {
         final player = data.favoritePlayers[i];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          decoration: _cardDecoration(),
+        return Card(
           child: ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: Colors.white10,
-              child: Icon(Icons.person, color: Colors.white),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PlayerScreen(playerId: player.id),
+              ),
             ),
-            title: Text(player.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            subtitle: Text("Голы: ${player.goals}", style: const TextStyle(color: AppTheme.neonPurple)),
+            leading: PlayerPhoto(url: player.photoUrl),
+            title: Text(
+              player.name,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(
+              "Матчи за клуб и сборную",
+              style: TextStyle(
+                color: theme.accentColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             trailing: IconButton(
+              tooltip: 'Убрать из избранного',
               icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              onPressed: () {}, // Заглушка
+              onPressed: () => data.togglePlayerFavorite(player.id),
             ),
           ),
         );
@@ -149,25 +182,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
     );
   }
 
-  // Виджет для логотипа (как на главном экране)
-  Widget _buildLogo(String? url) {
-    if (url == null || url.isEmpty) return const CircleAvatar(backgroundColor: Colors.white10, child: Icon(Icons.shield, color: Colors.white));
-    
-    if (url.endsWith('.svg')) {
-       return const CircleAvatar(backgroundColor: Colors.white10, child: Icon(Icons.shield, color: AppTheme.neonPurple)); 
-    }
-    return Image.network(
-      url, height: 40, width: 40,
-      errorBuilder: (_,__,___) => const CircleAvatar(backgroundColor: Colors.white10, child: Icon(Icons.shield, color: Colors.white)),
-    );
-  }
-
-  BoxDecoration _cardDecoration() {
-    return BoxDecoration(
-      color: Colors.white.withOpacity(0.05),
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: Colors.white.withOpacity(0.1)),
-    );
+  Widget _buildThemedLogo(String? url, AppCustomTheme theme) {
+    return FootballLogo(url: url, size: 50, padding: 5, framed: true);
   }
 
   Widget _buildEmptyState(String text, IconData icon) {
@@ -175,9 +191,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 60, color: Colors.white10),
+          Icon(icon, size: 60, color: Colors.grey.withOpacity(0.2)),
           const SizedBox(height: 10),
-          Text(text, style: const TextStyle(color: Colors.white38, fontSize: 16)),
+          Text(text, style: const TextStyle(color: Colors.grey)),
         ],
       ),
     );

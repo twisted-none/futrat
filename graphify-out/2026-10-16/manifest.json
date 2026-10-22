@@ -1,0 +1,770 @@
+{
+  "futrat_backend/app/__init__.py": {
+    "mtime": 1766273314.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "futrat_backend/app/config.py": {
+    "mtime": 1792141759.0468287,
+    "seen": 1792142115.9220147,
+    "ast_hash": "fdaa94e3e65c03aa185289fa1ef604af",
+    "semantic_hash": ""
+  },
+  "futrat_backend/app/database.py": {
+    "mtime": 1792141893.5750835,
+    "seen": 1792142115.9220147,
+    "ast_hash": "b528b054dfbe11dd0a6c69ccd99c522e",
+    "semantic_hash": ""
+  },
+  "futrat_backend/app/initial_data.py": {
+    "mtime": 1774701855.1644976,
+    "seen": 1791899978.1191802,
+    "ast_hash": "dde030a7059069cbce686cf4b6c8902d",
+    "semantic_hash": "dde030a7059069cbce686cf4b6c8902d"
+  },
+  "futrat_backend/app/main.py": {
+    "mtime": 1773870216.1475317,
+    "seen": 1791899978.1191802,
+    "ast_hash": "c34ee78779a9e6d36933a1ed48a5bfb0",
+    "semantic_hash": "c34ee78779a9e6d36933a1ed48a5bfb0"
+  },
+  "futrat_backend/app/models.py": {
+    "mtime": 1773928125.9297893,
+    "seen": 1791899978.1191802,
+    "ast_hash": "0b02f1ee9beeee1027a7309ad30669f7",
+    "semantic_hash": "0b02f1ee9beeee1027a7309ad30669f7"
+  },
+  "futrat_backend/app/routers/__init__.py": {
+    "mtime": 1766273324.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "futrat_backend/app/routers/auth.py": {
+    "mtime": 1766334982.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "b02ae2fd7bef53120bee4ab28c577d0d",
+    "semantic_hash": "b02ae2fd7bef53120bee4ab28c577d0d"
+  },
+  "futrat_backend/app/routers/data.py": {
+    "mtime": 1792153916.957089,
+    "seen": 1792154633.9163735,
+    "ast_hash": "b14e34fd042ab8caf54fd7e2a50c596b",
+    "semantic_hash": ""
+  },
+  "futrat_backend/app/routers/predictions.py": {
+    "mtime": 1766273192.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "c55f0e91467a115eb2ba2bda5b3463bb",
+    "semantic_hash": "c55f0e91467a115eb2ba2bda5b3463bb"
+  },
+  "futrat_backend/app/routers/users.py": {
+    "mtime": 1766409000.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "415083d193624997f798c13885e58269",
+    "semantic_hash": "415083d193624997f798c13885e58269"
+  },
+  "futrat_backend/app/schemas.py": {
+    "mtime": 1792153916.2430518,
+    "seen": 1792154633.9163735,
+    "ast_hash": "1c806b8e2f1cca05cab0b7d4371ff85d",
+    "semantic_hash": ""
+  },
+  "futrat_backend/app/security.py": {
+    "mtime": 1792142480.5271015,
+    "seen": 1792142526.9930735,
+    "ast_hash": "2b6a1c98442d3bfcd514ded16868a195",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/android/app/build.gradle.kts": {
+    "mtime": 1767026034.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "9f74345bb4094131fef3d74b12a8c284",
+    "semantic_hash": "9f74345bb4094131fef3d74b12a8c284"
+  },
+  "futrat_mobile/android/app/src/main/kotlin/ru/dema/futrat/MainActivity.kt": {
+    "mtime": 1767050928.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "24d5217df2cce81bc9c950d7dfd789fb",
+    "semantic_hash": "24d5217df2cce81bc9c950d7dfd789fb"
+  },
+  "futrat_mobile/android/build.gradle.kts": {
+    "mtime": 1766274744.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "803fe22651fbe96ed401eb0b66a492d1",
+    "semantic_hash": "803fe22651fbe96ed401eb0b66a492d1"
+  },
+  "futrat_mobile/android/settings.gradle.kts": {
+    "mtime": 1766274744.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "f276a44edd917afd836899357fdae60e",
+    "semantic_hash": "f276a44edd917afd836899357fdae60e"
+  },
+  "futrat_mobile/ios/RunnerTests/RunnerTests.swift": {
+    "mtime": 1766274746.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "24e5d095048eb86c30423f4e04b6e57b",
+    "semantic_hash": "24e5d095048eb86c30423f4e04b6e57b"
+  },
+  "futrat_mobile/ios/Runner/AppDelegate.swift": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "e277c49e98c9f80e9e71c0524a5cb60f",
+    "semantic_hash": "e277c49e98c9f80e9e71c0524a5cb60f"
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "31a08e429403e265cabfb31b3d65f049",
+    "semantic_hash": "31a08e429403e265cabfb31b3d65f049"
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "b9e927ac17345f2d5f052fe68a3487f9",
+    "semantic_hash": "b9e927ac17345f2d5f052fe68a3487f9"
+  },
+  "futrat_mobile/ios/Runner/Runner-Bridging-Header.h": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "7ad7b5cea096132de13ba526b2b9efbe",
+    "semantic_hash": "7ad7b5cea096132de13ba526b2b9efbe"
+  },
+  "futrat_mobile/lib/core/api_client.dart": {
+    "mtime": 1774573052.197354,
+    "seen": 1791899978.1191802,
+    "ast_hash": "475015bc8b0b3c7eeb24833607de0846",
+    "semantic_hash": "475015bc8b0b3c7eeb24833607de0846"
+  },
+  "futrat_mobile/lib/core/app_theme.dart": {
+    "mtime": 1774053276.9328122,
+    "seen": 1791899978.1191802,
+    "ast_hash": "26a8b2080ccc895da2f22dd71e39b17d",
+    "semantic_hash": "26a8b2080ccc895da2f22dd71e39b17d"
+  },
+  "futrat_mobile/lib/core/constants.dart": {
+    "mtime": 1766961634.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "911fae30fd3b95eb80c75ed02ef103a4",
+    "semantic_hash": "911fae30fd3b95eb80c75ed02ef103a4"
+  },
+  "futrat_mobile/lib/core/translator.dart": {
+    "mtime": 1774728376.9372647,
+    "seen": 1791899978.1191802,
+    "ast_hash": "dfb3c0564165bec2e8b5985f4b9fc05b",
+    "semantic_hash": "dfb3c0564165bec2e8b5985f4b9fc05b"
+  },
+  "futrat_mobile/lib/main.dart": {
+    "mtime": 1792153730.7644541,
+    "seen": 1792154633.9163735,
+    "ast_hash": "e63c58dbf05728aa167e96f37d03ed5f",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/models/all_models.dart": {
+    "mtime": 1792153954.1540968,
+    "seen": 1792154633.9163735,
+    "ast_hash": "46e589c1fb9bb9c2d7202b509a12b3ae",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/providers/auth_provider.dart": {
+    "mtime": 1773777444.884257,
+    "seen": 1791899978.1191802,
+    "ast_hash": "9bd2c306ef9cee2dc20c640d6ba17783",
+    "semantic_hash": "9bd2c306ef9cee2dc20c640d6ba17783"
+  },
+  "futrat_mobile/lib/providers/data_provider.dart": {
+    "mtime": 1792154173.334159,
+    "seen": 1792154633.9163735,
+    "ast_hash": "479bec14030b37ae1090aefa67ca1510",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/providers/theme_provider.dart": {
+    "mtime": 1773791040.6185987,
+    "seen": 1791899978.1191802,
+    "ast_hash": "6fa9d0282f2ad4c33f2e067f3af91038",
+    "semantic_hash": "6fa9d0282f2ad4c33f2e067f3af91038"
+  },
+  "futrat_mobile/lib/screens/auth_screen.dart": {
+    "mtime": 1792154172.675837,
+    "seen": 1792154633.9163735,
+    "ast_hash": "3a495fc9802f4c75764ee0c5d9943995",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/screens/favorites_screen.dart": {
+    "mtime": 1792154001.8323524,
+    "seen": 1792154633.9163735,
+    "ast_hash": "033bcf0fc727d86fb2b8343423de9e43",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/screens/home_screen.dart": {
+    "mtime": 1792154200.5053751,
+    "seen": 1792154633.9163735,
+    "ast_hash": "411fb09e32fedb6ad5df8063ac866f18",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/screens/leaderboard_screen.dart": {
+    "mtime": 1773790839.6861172,
+    "seen": 1791899978.1191802,
+    "ast_hash": "6723a8e28574c6fb69b62f61dbeabe3d",
+    "semantic_hash": "6723a8e28574c6fb69b62f61dbeabe3d"
+  },
+  "futrat_mobile/lib/screens/main_scaffold.dart": {
+    "mtime": 1773790847.0952957,
+    "seen": 1791899978.1191802,
+    "ast_hash": "ca5d6ec9a1f3343e5d8b5e64b9e96cd9",
+    "semantic_hash": "ca5d6ec9a1f3343e5d8b5e64b9e96cd9"
+  },
+  "futrat_mobile/lib/screens/match_detail_screen.dart": {
+    "mtime": 1792154201.1774828,
+    "seen": 1792154633.9163735,
+    "ast_hash": "3dc90d188b716a934ef515599361e091",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/screens/profile_screen.dart": {
+    "mtime": 1792154113.201983,
+    "seen": 1792154633.9163735,
+    "ast_hash": "01368466dd6815ce2ba4d4f0bd8ee728",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/linux/runner/main.cc": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "539395bcd63dba20afed0838d136189f",
+    "semantic_hash": "539395bcd63dba20afed0838d136189f"
+  },
+  "futrat_mobile/linux/runner/my_application.cc": {
+    "mtime": 1766274746.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "ca89625d5d37177060efb47adbafa2dc",
+    "semantic_hash": "ca89625d5d37177060efb47adbafa2dc"
+  },
+  "futrat_mobile/linux/runner/my_application.h": {
+    "mtime": 1766251790.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "ffa1a7c0a2ad45a2c14a921596516ff8",
+    "semantic_hash": "ffa1a7c0a2ad45a2c14a921596516ff8"
+  },
+  "futrat_mobile/macos/RunnerTests/RunnerTests.swift": {
+    "mtime": 1766274746.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "8059f5d27a19c556eeafb49b3f9b7bdd",
+    "semantic_hash": "8059f5d27a19c556eeafb49b3f9b7bdd"
+  },
+  "futrat_mobile/macos/Runner/AppDelegate.swift": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "4b52e0b89ebfef9baf45b04548c463d6",
+    "semantic_hash": "4b52e0b89ebfef9baf45b04548c463d6"
+  },
+  "futrat_mobile/macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "1d48e925145d4b573a3b5d7960a1c585",
+    "semantic_hash": "1d48e925145d4b573a3b5d7960a1c585"
+  },
+  "futrat_mobile/macos/Runner/MainFlutterWindow.swift": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "93c22dae2d93f3dc1402e121901f582b",
+    "semantic_hash": "93c22dae2d93f3dc1402e121901f582b"
+  },
+  "futrat_mobile/test/widget_test.dart": {
+    "mtime": 1792154206.9878075,
+    "seen": 1792154633.9163735,
+    "ast_hash": "85951b42cea70162b4ffa4be9bb91f67",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/web/manifest.json": {
+    "mtime": 1766274746.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "6e97d94625e8d53012629a5dc248ea49",
+    "semantic_hash": "6e97d94625e8d53012629a5dc248ea49"
+  },
+  "futrat_mobile/windows/runner/flutter_window.cpp": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "2f463f9b7da67a2d692a012f9ea85e0c",
+    "semantic_hash": "2f463f9b7da67a2d692a012f9ea85e0c"
+  },
+  "futrat_mobile/windows/runner/flutter_window.h": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "7defcc89d4a26d56e801241d624d48fb",
+    "semantic_hash": "7defcc89d4a26d56e801241d624d48fb"
+  },
+  "futrat_mobile/windows/runner/main.cpp": {
+    "mtime": 1766274746.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "69742a7817d3ae8d647d78785868c311",
+    "semantic_hash": "69742a7817d3ae8d647d78785868c311"
+  },
+  "futrat_mobile/windows/runner/resource.h": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "1ade5dd15e613479a15e8832ed276f2b",
+    "semantic_hash": "1ade5dd15e613479a15e8832ed276f2b"
+  },
+  "futrat_mobile/windows/runner/utils.cpp": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "432461b09d862a2f8dadf380ff0e34e5",
+    "semantic_hash": "432461b09d862a2f8dadf380ff0e34e5"
+  },
+  "futrat_mobile/windows/runner/utils.h": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "fd81e143f5614eb6fd75efe539002853",
+    "semantic_hash": "fd81e143f5614eb6fd75efe539002853"
+  },
+  "futrat_mobile/windows/runner/win32_window.cpp": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "571eb8234dbc2661be03aa5f2a4d2fca",
+    "semantic_hash": "571eb8234dbc2661be03aa5f2a4d2fca"
+  },
+  "futrat_mobile/windows/runner/win32_window.h": {
+    "mtime": 1760029122.0,
+    "seen": 1791899978.1191802,
+    "ast_hash": "7569387d58711ab975940f4df3b4bcda",
+    "semantic_hash": "7569387d58711ab975940f4df3b4bcda"
+  },
+  "futrat_backend/tests/conftest.py": {
+    "mtime": 1792141564.8100936,
+    "seen": 1792142115.9220147,
+    "ast_hash": "a7c766c712599aa976591f24745de24b",
+    "semantic_hash": ""
+  },
+  "futrat_backend/tests/fixtures/legacy_security.json": {
+    "mtime": 1792141604.3401065,
+    "seen": 1792142115.9220147,
+    "ast_hash": "d1cbbdc326663a754009fd61e3ab893f",
+    "semantic_hash": ""
+  },
+  "futrat_backend/tests/test_api.py": {
+    "mtime": 1792153870.1307433,
+    "seen": 1792154633.9163735,
+    "ast_hash": "41d9c21ff2e604ef77059a33c660ac13",
+    "semantic_hash": ""
+  },
+  "futrat_backend/tests/test_runtime.py": {
+    "mtime": 1792142105.9520595,
+    "seen": 1792142115.9220147,
+    "ast_hash": "5352995f2753818557e7fbce5a54bde3",
+    "semantic_hash": ""
+  },
+  "futrat_backend/tests/test_security.py": {
+    "mtime": 1792141632.1660624,
+    "seen": 1792142115.9220147,
+    "ast_hash": "0dac1e3b40340e3ae42376842c562652",
+    "semantic_hash": ""
+  },
+  "futrat_backend/tests/test_sync.py": {
+    "mtime": 1792141986.833248,
+    "seen": 1792142115.9220147,
+    "ast_hash": "9b3a74df9a8ca87e46f3dc698d303c78",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1766272556.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "1ad544477906e6b53f01615202552e96",
+    "semantic_hash": ""
+  },
+  "futrat_backend/compose.test.yml": {
+    "mtime": 1792141895.5751362,
+    "seen": 1792142115.9220147,
+    "ast_hash": "d02324f58e8400d174c4a3b6ea24f07b",
+    "semantic_hash": ""
+  },
+  "futrat_backend/docker-compose.yml": {
+    "mtime": 1792141760.515263,
+    "seen": 1792142115.9220147,
+    "ast_hash": "209f7af9edfe8e7701cb96553386e9cf",
+    "semantic_hash": ""
+  },
+  "futrat_backend/requirements-dev.txt": {
+    "mtime": 1792141934.7170715,
+    "seen": 1792142115.9220147,
+    "ast_hash": "b4a4c74586a6d0974dfab6072b22ca5f",
+    "semantic_hash": ""
+  },
+  "futrat_backend/requirements.txt": {
+    "mtime": 1792141634.5244758,
+    "seen": 1792142115.9220147,
+    "ast_hash": "f6f20447d726a9e424c8e5e3ddac0af6",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/README.md": {
+    "mtime": 1766274746.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "14f9906ea4d7d5bcaa2571fa7a0fd5a3",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/analysis_options.yaml": {
+    "mtime": 1766274744.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "9e65f4b9beebb674c0dc252f70a5c177",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md": {
+    "mtime": 1760029122.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "f7ee1b402881509d197f34963e569927",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/linux/CMakeLists.txt": {
+    "mtime": 1766274746.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "d08b1114cf3d9160e1ba23ad0b6e5f87",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/linux/flutter/CMakeLists.txt": {
+    "mtime": 1760029122.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "2195470ce31675d31db5a37590d011f6",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/linux/runner/CMakeLists.txt": {
+    "mtime": 1760029122.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "30cc1614b16214b66c014af09ba699eb",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/pubspec.yaml": {
+    "mtime": 1774054099.2938607,
+    "seen": 1792142115.9220147,
+    "ast_hash": "f734febc5868efd2f6132355f3ee76a7",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/web/index.html": {
+    "mtime": 1766274746.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "3770f5f10a1be803d7fb0638a827b645",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/windows/CMakeLists.txt": {
+    "mtime": 1766274746.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "8c40fd85830aa58b5a2815cecc4ba46c",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/windows/flutter/CMakeLists.txt": {
+    "mtime": 1760029122.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "bbf66fed5180bd9ae8198b8d7c4a0001",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/windows/runner/CMakeLists.txt": {
+    "mtime": 1760029122.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "028602ab9754bffe716659ada7590d29",
+    "semantic_hash": ""
+  },
+  "tasks/plan.md": {
+    "mtime": 1792141407.9258225,
+    "seen": 1792142115.9220147,
+    "ast_hash": "d8dfc99fd6298c54e9f1a00a7c42f320",
+    "semantic_hash": ""
+  },
+  "tasks/todo.md": {
+    "mtime": 1792142555.0591803,
+    "seen": 1792154633.916904,
+    "ast_hash": "5686a4cf1b6337dda4eebca615360f4f",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/android/app/src/main/res/mipmap-hdpi/ic_launcher.png": {
+    "mtime": 1760029122.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "13e9c72ec37fac220397aa819fa1ef2d",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/android/app/src/main/res/mipmap-hdpi/launcher_icon.png": {
+    "mtime": 1774053709.3186283,
+    "seen": 1792142115.9220147,
+    "ast_hash": "21b1fe848e2e42a1b2ca108172dd575d",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/android/app/src/main/res/mipmap-mdpi/ic_launcher.png": {
+    "mtime": 1760029122.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "6270344430679711b81476e29878caa7",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/android/app/src/main/res/mipmap-mdpi/launcher_icon.png": {
+    "mtime": 1774053709.292629,
+    "seen": 1792142115.9220147,
+    "ast_hash": "fcef0d552e9d573b5191a5edad1d81d0",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png": {
+    "mtime": 1760029122.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "a0a8db5985280b3679d99a820ae2db79",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/android/app/src/main/res/mipmap-xhdpi/launcher_icon.png": {
+    "mtime": 1774053709.3326283,
+    "seen": 1792142115.9220147,
+    "ast_hash": "6a17329185763561c3864c24add59b83",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png": {
+    "mtime": 1760029122.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "afe1b655b9f32da22f9a4301bb8e6ba8",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/android/app/src/main/res/mipmap-xxhdpi/launcher_icon.png": {
+    "mtime": 1774053709.3366282,
+    "seen": 1792142115.9220147,
+    "ast_hash": "11eae2aa529447bdcbf18d6d4e7236ca",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png": {
+    "mtime": 1760029122.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "57838d52c318faff743130c3fcfae0c6",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/android/app/src/main/res/mipmap-xxxhdpi/launcher_icon.png": {
+    "mtime": 1774053709.3091288,
+    "seen": 1792142115.9220147,
+    "ast_hash": "8a38e817374d03f972be0aa284f28684",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/assets/icon.png": {
+    "mtime": 1773590078.9457133,
+    "seen": 1792142115.9220147,
+    "ast_hash": "8db6058585fe9664ee7004cd28caef72",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png": {
+    "mtime": 1774053709.27113,
+    "seen": 1792142115.9220147,
+    "ast_hash": "c86ca7b91fd91093b86a77d5bd1185f4",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@1x.png": {
+    "mtime": 1774053708.8606288,
+    "seen": 1792142115.9220147,
+    "ast_hash": "9b493c3f4eeb9d39547d2b9e1baa26d1",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@2x.png": {
+    "mtime": 1774053708.8641987,
+    "seen": 1792142115.9220147,
+    "ast_hash": "a0a036c1befcf496c8fa6a29f2cccf4d",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@3x.png": {
+    "mtime": 1774053708.8696299,
+    "seen": 1792142115.9220147,
+    "ast_hash": "d5003205587bc9b11fd8faa483ebc158",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@1x.png": {
+    "mtime": 1774053708.8726282,
+    "seen": 1792142115.9220147,
+    "ast_hash": "ed2199a6842047a5c2f8b21b97c8b162",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@2x.png": {
+    "mtime": 1774053708.8761299,
+    "seen": 1792142115.9220147,
+    "ast_hash": "82750f6ab0ca6f4a27d9828d4f1c5bd7",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@3x.png": {
+    "mtime": 1774053708.8811295,
+    "seen": 1792142115.9220147,
+    "ast_hash": "0b1eb605674d42e304abcbee6b1aa3a4",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@1x.png": {
+    "mtime": 1774053708.8841283,
+    "seen": 1792142115.9220147,
+    "ast_hash": "a0a036c1befcf496c8fa6a29f2cccf4d",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@2x.png": {
+    "mtime": 1774053708.888128,
+    "seen": 1792142115.9220147,
+    "ast_hash": "ee93906c6df473136da4236a56bd6909",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@3x.png": {
+    "mtime": 1774053708.8961306,
+    "seen": 1792142115.9220147,
+    "ast_hash": "20b617503a4e91f7e07b64973d4adf83",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-50x50@1x.png": {
+    "mtime": 1774053708.8996315,
+    "seen": 1792142115.9220147,
+    "ast_hash": "c17dd1efef8a6f5ff7d46b264725a7e2",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-50x50@2x.png": {
+    "mtime": 1774053708.9041283,
+    "seen": 1792142115.9220147,
+    "ast_hash": "7fb8e2528512d390acf3d1ef8f5970ea",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-57x57@1x.png": {
+    "mtime": 1774053708.9076293,
+    "seen": 1792142115.9220147,
+    "ast_hash": "4835734678304131f8e8e98327e4a325",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-57x57@2x.png": {
+    "mtime": 1774053708.9136288,
+    "seen": 1792142115.9220147,
+    "ast_hash": "a0bf9f579732da8f9e856c509d7e069f",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@2x.png": {
+    "mtime": 1774053708.9191287,
+    "seen": 1792142115.9220147,
+    "ast_hash": "20b617503a4e91f7e07b64973d4adf83",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@3x.png": {
+    "mtime": 1774053708.9291282,
+    "seen": 1792142115.9220147,
+    "ast_hash": "33fea3b6496097f43122cd282a0ed5c6",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-72x72@1x.png": {
+    "mtime": 1774053708.9331303,
+    "seen": 1792142115.9220147,
+    "ast_hash": "21b1fe848e2e42a1b2ca108172dd575d",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-72x72@2x.png": {
+    "mtime": 1774053708.9406283,
+    "seen": 1792142115.9220147,
+    "ast_hash": "11eae2aa529447bdcbf18d6d4e7236ca",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@1x.png": {
+    "mtime": 1774053708.9451284,
+    "seen": 1792142115.9220147,
+    "ast_hash": "e595e99f985713c30465542f9116dd00",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@2x.png": {
+    "mtime": 1774053708.9536297,
+    "seen": 1792142115.9220147,
+    "ast_hash": "622aac511b71bf6c37a33b1984ee9f3f",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-83.5x83.5@2x.png": {
+    "mtime": 1774053708.963128,
+    "seen": 1792142115.9220147,
+    "ast_hash": "71981b4dff9bef52e947a732969ca2d9",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage.png": {
+    "mtime": 1761044202.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "978c1bee49d7ad5fc1a4d81099b13e18",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@2x.png": {
+    "mtime": 1761044202.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "978c1bee49d7ad5fc1a4d81099b13e18",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png": {
+    "mtime": 1761044202.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "978c1bee49d7ad5fc1a4d81099b13e18",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png": {
+    "mtime": 1761044202.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "c9becc9105f8cabce934d20c7bfb6aac",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_128.png": {
+    "mtime": 1761044202.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "3ded30823804caaa5ccc944067c54a36",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_16.png": {
+    "mtime": 1761044202.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "8bf511604bc6ed0a6aeb380c5113fdcf",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png": {
+    "mtime": 1761044202.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "dfe2c93d1536ae02f085cc63faa3430e",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png": {
+    "mtime": 1761044202.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "8e0ae58e362a6636bdfccbc04da2c58c",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png": {
+    "mtime": 1761044202.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "0ad44039155424738917502c69667699",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_64.png": {
+    "mtime": 1761044202.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "04e7b6ef05346c70b663ca1d97de3ad5",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/web/favicon.png": {
+    "mtime": 1760029122.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "5dcef449791fa27946b3d35ad8803796",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/web/icons/Icon-192.png": {
+    "mtime": 1760029122.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "ac9a721a12bbc803b44f645561ecb1e1",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/web/icons/Icon-512.png": {
+    "mtime": 1760029122.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "96e752610906ba2a93c65f8abe1645f1",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/web/icons/Icon-maskable-192.png": {
+    "mtime": 1761044202.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "c457ef57daa1d16f64b27b786ec2ea3c",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/web/icons/Icon-maskable-512.png": {
+    "mtime": 1761044202.0,
+    "seen": 1792142115.9220147,
+    "ast_hash": "301a7604d45b3e739efc881eb04896ea",
+    "semantic_hash": ""
+  },
+  "futrat_backend/README.md": {
+    "mtime": 1792142501.473448,
+    "seen": 1792142526.9930735,
+    "ast_hash": "e630d9c7ce87e00008099c96f22b68cb",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/core/auth_gate.dart": {
+    "mtime": 1792154199.877319,
+    "seen": 1792154633.9163735,
+    "ast_hash": "cda5e95a3688e5f0435f4330ed6cfcc7",
+    "semantic_hash": ""
+  }
+}

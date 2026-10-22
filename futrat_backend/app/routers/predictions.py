@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from app import models, schemas, database
+from app import models, schemas, database, forecasts
 from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/interactive", tags=["Interactive"])
@@ -12,7 +12,12 @@ def make_prediction(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    # Проверка, не делал ли уже прогноз на этот матч
+    # Legacy exact-score clients use the same quota/deadline as the 1X2 API.
+    if prediction.predicted_home_score < 0 or prediction.predicted_away_score < 0:
+        raise HTTPException(422,"Счёт не может быть отрицательным")
+    outcome="HOME" if prediction.predicted_home_score>prediction.predicted_away_score else (
+        "AWAY" if prediction.predicted_home_score<prediction.predicted_away_score else "DRAW")
+    forecast=forecasts.choose(db,current_user.id,prediction.match_id,outcome,commit=False)
     existing = db.query(models.Prediction).filter(
         models.Prediction.user_id == current_user.id,
         models.Prediction.match_id == prediction.match_id
@@ -26,6 +31,8 @@ def make_prediction(
         **prediction.model_dump()
     )
     db.add(new_pred)
+    db.flush()
+    forecast.legacy_id=new_pred.id
     db.commit()
     db.refresh(new_pred)
     return new_pred

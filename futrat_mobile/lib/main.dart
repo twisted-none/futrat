@@ -1,80 +1,112 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
-import 'core/app_theme.dart'; // Подключаем тему
 import 'providers/auth_provider.dart';
 import 'providers/data_provider.dart';
+import 'providers/theme_provider.dart';
 
-import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/favorites_screen.dart';
 import 'screens/profile_screen.dart';
-import 'screens/leaderboard_screen.dart'; // НОВЫЙ ЭКРАН
+import 'screens/forecasts_screen.dart';
 import 'screens/main_scaffold.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks([
+      'IBM Plex Sans',
+    ], await rootBundle.loadString('assets/fonts/OFL.txt'));
+  });
+
+  // Создаем провайдеры заранее
   final authProvider = AuthProvider();
-  await authProvider.checkAuth(); 
+  final themeProvider = ThemeProvider();
+  final dataProvider = DataProvider();
+
+  await Future.wait([authProvider.checkAuth(), themeProvider.ready]);
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: authProvider),
-        ChangeNotifierProvider(create: (_) => DataProvider()),
+        ChangeNotifierProvider.value(value: themeProvider),
+        ChangeNotifierProvider.value(value: dataProvider),
       ],
       child: const FutratApp(),
     ),
   );
 }
 
-class FutratApp extends StatelessWidget {
+class FutratApp extends StatefulWidget {
   const FutratApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+  State<FutratApp> createState() => _FutratAppState();
+}
 
-    final router = GoRouter(
-      initialLocation: '/login',
-      refreshListenable: authProvider, 
-      redirect: (context, state) {
-        final isAuth = authProvider.isAuthenticated;
-        final currentLocation = state.uri.path;
+class _FutratAppState extends State<FutratApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
-        if (!isAuth) {
-          return currentLocation == '/login' ? null : '/login';
-        }
-        if (isAuth) {
-          if (currentLocation == '/login') return '/home';
-        }
-        return null; 
-      },
-      routes: [
-        GoRoute(
-          path: '/login',
-          builder: (context, state) => const AuthScreen(),
-        ),
-        ShellRoute(
-          builder: (context, state, child) => MainScaffold(child: child),
-          routes: [
-            GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
-            GoRoute(path: '/leaderboard', builder: (context, state) => const LeaderboardScreen()), // НОВЫЙ РОУТ
-            GoRoute(path: '/favorites', builder: (context, state) => const FavoritesScreen()),
-            GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
-          ],
-        ),
-      ],
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    context.read<DataProvider>().setLiveUpdatesActive(
+      state == AppLifecycleState.resumed,
     );
+  }
+
+  late final GoRouter _router = GoRouter(
+    initialLocation: '/home',
+    routes: [
+      ShellRoute(
+        builder: (context, state, child) => MainScaffold(child: child),
+        routes: [
+          GoRoute(
+            path: '/home',
+            builder: (context, state) => const HomeScreen(),
+          ),
+          GoRoute(
+            path: '/leaderboard',
+            builder: (context, state) => const ForecastsScreen(),
+          ),
+          GoRoute(
+            path: '/favorites',
+            builder: (context, state) => const FavoritesScreen(),
+          ),
+          GoRoute(
+            path: '/profile',
+            builder: (context, state) => const ProfileScreen(),
+          ),
+        ],
+      ),
+    ],
+  );
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _router.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
 
     return MaterialApp.router(
       title: 'Futrat',
-      theme: AppTheme.darkTheme, // ПРИМЕНЯЕМ ТЕМУ
-      routerConfig: router,
       debugShowCheckedModeBanner: false,
+      // Применяем тему из провайдера
+      theme: themeProvider.currentTheme.themeData,
+      routerConfig: _router,
     );
   }
 }
