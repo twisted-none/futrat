@@ -32,7 +32,7 @@ requirements-dev.in
 requirements-dev.txt
 requirements.in
 .python-version
-/README.md
+README.md
 
 # Keep .env, deploy/.env.production, app/, Dockerfile, .dockerignore,
 # compose.prod.yml, requirements.txt and deploy/ available for transfer.

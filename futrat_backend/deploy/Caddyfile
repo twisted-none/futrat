@@ -1,0 +1,70 @@
+# Complete replacement for /srv/projects/vps-web/Caddyfile.
+# Configuration validated on Caddy 2.10.2 and 2.11.7; verify public issuance on server.
+# Keep existing environment variables, mounts and caddy_net when updating Caddy.
+{
+    admin off
+    default_sni 176.108.255.248
+
+    servers {
+        protocols h1 h2
+    }
+}
+
+{$KEYCLOAK_DOMAIN} {
+    reverse_proxy dashly_keycloak:8080 {
+        header_up X-Forwarded-Proto https
+        header_up Host {host}
+    }
+}
+
+{$DASHLY_DOMAIN} {
+    reverse_proxy dashly_frontend:80
+}
+
+{$DASHLY_API_DOMAIN} {
+    reverse_proxy dashly_backend:8000
+}
+
+{$MINIAPP_DOMAIN} {
+    reverse_proxy miniapp_frontend:80
+}
+
+{$GRAFANA_DOMAIN} {
+    reverse_proxy grafana:3000
+}
+
+{$PGADMIN_DOMAIN} {
+    reverse_proxy pgadmin:80
+}
+
+vault-auth.176.108.255.248.sslip.io {
+    encode zstd gzip
+    reverse_proxy twisted_vault_keycloak:8080 {
+        header_up X-Forwarded-Proto https
+        header_up Host {host}
+    }
+}
+
+vault.176.108.255.248.sslip.io {
+    encode zstd gzip
+    reverse_proxy twisted_vault_frontend:80
+}
+
+https://176.108.255.248 {
+    tls {
+        issuer acme https://acme-v02.api.letsencrypt.org/directory {
+            profile shortlived
+        }
+    }
+
+    request_body {
+        max_size 1MB
+    }
+
+    reverse_proxy futrat-api:8000
+
+    header {
+        X-Content-Type-Options nosniff
+        -Server
+    }
+}
