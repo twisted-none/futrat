@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 
 async def validation_error(request: Request, exc: RequestValidationError):
-    if request.url.path not in {"/auth/register", "/auth/login", "/users/me"}:
+    if request.url.path not in {"/auth/register", "/auth/login", "/auth/refresh", "/auth/logout", "/users/me"}:
         return await request_validation_exception_handler(request, exc)
     errors = []
     for error in exc.errors():

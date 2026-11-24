@@ -11,7 +11,9 @@ def register(client):
         "email": "test@example.test", "username": "Тест", "password": "Пароль ⚽"
     })
     assert result.status_code == 200
-    assert set(result.json()) == {"access_token", "token_type"}
+    assert set(result.json()) == {"access_token", "token_type", "refresh_token", "expires_in"}
+    assert len(result.json()["refresh_token"]) >= 32
+    assert result.json()["expires_in"] > 0
     assert result.json()["token_type"] == "bearer"
     return {"Authorization": "Bearer " + result.json()["access_token"]}
 
@@ -88,7 +90,10 @@ def test_prediction_and_favorite_persist(client, db, match):
 def test_openapi_keeps_flutter_auth_contract(client):
     schema = client.get("/openapi.json").json()
     assert "application/json" in schema["paths"]["/auth/login"]["post"]["requestBody"]["content"]
-    assert set(schema["components"]["schemas"]["Token"]["properties"]) == {"access_token", "token_type"}
+    assert set(schema["components"]["schemas"]["Token"]["properties"]) == {
+        "access_token", "token_type", "refresh_token", "expires_in"}
+    assert "/auth/refresh" in schema["paths"]
+    assert "/auth/logout" in schema["paths"]
 
 
 def test_lineup_player_can_be_favorited(client, db, match):

@@ -4,6 +4,12 @@ Approved and implemented on 20 October 2026: the Flutter registration/login scre
 
 ## API and errors
 
+The November 2026 persistent-session extension adds `refresh_token` and
+`expires_in` to successful token responses and `/auth/refresh`, `/auth/logout`
+endpoints. Access tokens remain finite, while revocable device keys have no
+inactivity timeout. See `deploy/PERSISTENT_SESSIONS.md` for rollout and security
+details; the earlier behavior and verification history below predate this change.
+
 `POST /auth/register` accepts `{ "username": "Player", "password": "example-password" }`. `POST /auth/login` uses the same two fields. Both return the existing token shape. Optional email on registration and the old email login key remain supported for older clients; the new app does not send email. `/auth/me` returns nullable email for accounts created without one.
 
 Validation returns HTTP 422 with a readable Russian `detail` plus field/message entries in `errors`. Submitted passwords or raw Pydantic inputs are not echoed. A taken nickname is 409, wrong credentials are 401 with the same “Неверный никнейм или пароль” message for missing users and bad passwords. Database unique violations are mapped to the relevant nickname/email conflict; unrelated integrity errors are not disguised as a taken nickname.

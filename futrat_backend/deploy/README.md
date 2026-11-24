@@ -1,5 +1,9 @@
 # Deployment: Ubuntu, existing Caddy and PostgreSQL
 
+Обновление постоянного входа от 24 ноября 2026: см. [PERSISTENT_SESSIONS.md](PERSISTENT_SESSIONS.md).
+Оно требует пересборки API и добавляет таблицу сессий автоматически при запуске;
+новые `.env`-параметры и отдельная база не нужны.
+
 Инструкция для сервера `176.108.255.248`. На нём уже работают контейнеры `caddy`, `postgresql` (PostgreSQL 15) и другие проекты. `compose.prod.yml` управляет только Futrat. База Futrat хранится в существующем volume PostgreSQL; новый volume или сервер БД не создаётся. Команды ниже выполняются **на Ubuntu**, из каталога `futrat_backend`, если не указано иначе.
 
 ## Preparation

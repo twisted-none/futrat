@@ -4,6 +4,9 @@ from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
+from datetime import datetime, timezone
+import hashlib
+import secrets
 
 from app import models, schemas, security, database, config
 from app.credentials import nickname_key
@@ -36,6 +39,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         raise credentials_exception
     if user is None:
         raise credentials_exception
+    session_id = payload.get("sid")
+    if session_id is not None:
+        if not isinstance(session_id, str):
+            raise credentials_exception
+        session = db.get(models.AuthSession, session_id)
+        if session is None or session.revoked_at is not None or session.user_id != user.id:
+            raise credentials_exception
     return user
 
 
@@ -46,9 +56,49 @@ def nickname_taken(db, username, exclude_id=None):
     return query.first() is not None
 
 
-def user_token(user):
-    access_token = security.create_access_token(data={"sub": str(user.id), "subject_type": "user_id"})
-    return {"access_token": access_token, "token_type": "bearer"}
+def token_pair(session, refresh_token):
+    access_token = security.create_access_token(data={
+        "sub": str(session.user_id), "subject_type": "user_id", "sid": session.id})
+    return {"access_token": access_token, "token_type": "bearer",
+            "refresh_token": refresh_token,
+            "expires_in": config.settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60}
+
+
+def user_token(user, db):
+    refresh_token = secrets.token_urlsafe(48)
+    now = datetime.now(timezone.utc)
+    session = models.AuthSession(id=secrets.token_hex(16), user_id=user.id,
+        token_hash=hashlib.sha256(refresh_token.encode()).hexdigest(),
+        created_at=now, last_used_at=now)
+    db.add(session)
+    db.commit()
+    return token_pair(session, refresh_token)
+
+
+def session_for_key(db, refresh_token):
+    digest = hashlib.sha256(refresh_token.encode()).hexdigest()
+    return db.query(models.AuthSession).filter_by(token_hash=digest).with_for_update().first()
+
+
+@router.post("/refresh", response_model=schemas.Token)
+def refresh_session(data: schemas.SessionKey, db: Session = Depends(database.get_db)):
+    key = data.refresh_token.get_secret_value()
+    session = session_for_key(db, key)
+    if session is None or session.revoked_at is not None or db.get(models.User, session.user_id) is None:
+        raise HTTPException(status_code=401, detail="Сессия недействительна. Войдите снова")
+    # A revocable device key has no inactivity timeout. Keeping it stable makes
+    # retries safe when a response is lost; only hashes are stored server-side.
+    session.last_used_at = datetime.now(timezone.utc)
+    db.commit()
+    return token_pair(session, key)
+
+
+@router.post("/logout", status_code=204)
+def revoke_session(data: schemas.SessionKey, db: Session = Depends(database.get_db)):
+    session = session_for_key(db, data.refresh_token.get_secret_value())
+    if session is not None and session.revoked_at is None:
+        session.revoked_at = datetime.now(timezone.utc)
+        db.commit()
 
 
 def raise_unique_conflict(error):
@@ -76,7 +126,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
         db.rollback()
         raise_unique_conflict(error)
     db.refresh(new_user)
-    return user_token(new_user)
+    return user_token(new_user, db)
 
 
 @router.post("/login", response_model=schemas.Token)
@@ -92,7 +142,7 @@ def login(user_data: schemas.UserLogin, db: Session = Depends(database.get_db)):
         valid = False
     if not valid:
         raise HTTPException(status_code=401, detail="Неверный никнейм или пароль")
-    return user_token(user)
+    return user_token(user, db)
 
 
 @router.get("/me", response_model=schemas.UserResponse)

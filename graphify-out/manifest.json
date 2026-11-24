@@ -30,9 +30,9 @@
     "semantic_hash": ""
   },
   "futrat_backend/app/models.py": {
-    "mtime": 1792515728.003325,
-    "seen": 1792516189.2660787,
-    "ast_hash": "dfb2212826d943f6ebbef09ff7dbe140",
+    "mtime": 1795468736.2953312,
+    "seen": 1795470157.17083,
+    "ast_hash": "0f2d70940494b0f595d860c5dcc8105f",
     "semantic_hash": ""
   },
   "futrat_backend/app/routers/__init__.py": {
@@ -42,9 +42,9 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "futrat_backend/app/routers/auth.py": {
-    "mtime": 1792515944.9547963,
-    "seen": 1792516189.2660787,
-    "ast_hash": "2a245f607a8dbf3d9253f0c7999077ec",
+    "mtime": 1795468741.045564,
+    "seen": 1795470157.17083,
+    "ast_hash": "e658653fbad7f1debb7366ad45bf7f30",
     "semantic_hash": ""
   },
   "futrat_backend/app/routers/data.py": {
@@ -66,15 +66,15 @@
     "semantic_hash": ""
   },
   "futrat_backend/app/schemas.py": {
-    "mtime": 1792515659.2818825,
-    "seen": 1792516189.2660787,
-    "ast_hash": "964a56cadda8313d0f81b754de379048",
+    "mtime": 1795468739.409086,
+    "seen": 1795470157.180006,
+    "ast_hash": "edf585e5581660bb4bf22faffcd6f380",
     "semantic_hash": ""
   },
   "futrat_backend/app/security.py": {
-    "mtime": 1792142480.5271015,
-    "seen": 1792142526.9930735,
-    "ast_hash": "2b6a1c98442d3bfcd514ded16868a195",
+    "mtime": 1795468737.8648453,
+    "seen": 1795470157.180006,
+    "ast_hash": "645c08e0a910c69bcf73747843eeb7d5",
     "semantic_hash": ""
   },
   "futrat_mobile/android/app/build.gradle.kts": {
@@ -132,9 +132,9 @@
     "semantic_hash": "7ad7b5cea096132de13ba526b2b9efbe"
   },
   "futrat_mobile/lib/core/api_client.dart": {
-    "mtime": 1792336433.5485735,
-    "seen": 1792337006.2948234,
-    "ast_hash": "5ddc0e55e724e52726f25b38aa0166a8",
+    "mtime": 1795468958.6668954,
+    "seen": 1795470157.1907003,
+    "ast_hash": "41b41932bf173ad0f0ed37d660f4ed98",
     "semantic_hash": ""
   },
   "futrat_mobile/lib/core/app_theme.dart": {
@@ -168,9 +168,9 @@
     "semantic_hash": ""
   },
   "futrat_mobile/lib/providers/auth_provider.dart": {
-    "mtime": 1792516033.6051962,
-    "seen": 1792516189.2660787,
-    "ast_hash": "dbdd938b25c9c1b073163dfe5f9f2ff2",
+    "mtime": 1795470230.798642,
+    "seen": 1795470285.0055375,
+    "ast_hash": "55b0bc9552dac7d04a129959242b5a1b",
     "semantic_hash": ""
   },
   "futrat_mobile/lib/providers/data_provider.dart": {
@@ -198,9 +198,9 @@
     "semantic_hash": ""
   },
   "futrat_mobile/lib/screens/home_screen.dart": {
-    "mtime": 1792496966.6468697,
-    "seen": 1792497242.7815986,
-    "ast_hash": "b3e49f639d95834347b846ef1bedf385",
+    "mtime": 1792681581.6182623,
+    "seen": 1792681938.4771347,
+    "ast_hash": "f774b541fcce308390751d49fd1e34aa",
     "semantic_hash": ""
   },
   "futrat_mobile/lib/screens/leaderboard_screen.dart": {
@@ -342,9 +342,9 @@
     "semantic_hash": ""
   },
   "futrat_backend/tests/test_api.py": {
-    "mtime": 1792515857.8606117,
-    "seen": 1792516189.2660787,
-    "ast_hash": "7608563f9954ab75e0ddfa1d50a458ed",
+    "mtime": 1795469099.4404685,
+    "seen": 1795470157.1822317,
+    "ast_hash": "dccd4d015d68e7ee585df7d215f318a8",
     "semantic_hash": ""
   },
   "futrat_backend/tests/test_runtime.py": {
@@ -384,15 +384,15 @@
     "semantic_hash": ""
   },
   "futrat_backend/requirements-dev.txt": {
-    "mtime": 1792141934.7170715,
-    "seen": 1792142115.9220147,
-    "ast_hash": "b4a4c74586a6d0974dfab6072b22ca5f",
+    "mtime": 1795469946.878577,
+    "seen": 1795470157.2101736,
+    "ast_hash": "f84a2fc4ac18531edb21f56fe8ccef07",
     "semantic_hash": ""
   },
   "futrat_backend/requirements.txt": {
-    "mtime": 1792141634.5244758,
-    "seen": 1792142115.9220147,
-    "ast_hash": "f6f20447d726a9e424c8e5e3ddac0af6",
+    "mtime": 1795469933.292811,
+    "seen": 1795470157.2101736,
+    "ast_hash": "8dd2e97829e078c127f9e8e52766c976",
     "semantic_hash": ""
   },
   "futrat_mobile/README.md": {
@@ -432,9 +432,9 @@
     "semantic_hash": ""
   },
   "futrat_mobile/pubspec.yaml": {
-    "mtime": 1792274506.885674,
-    "seen": 1792274817.1548336,
-    "ast_hash": "7e9ade5029a3b946e26277a460537a35",
+    "mtime": 1795469558.5237498,
+    "seen": 1795470157.218202,
+    "ast_hash": "4e6cf6a8d07d1b0d6815c7e8735b1a5d",
     "semantic_hash": ""
   },
   "futrat_mobile/web/index.html": {
@@ -882,9 +882,9 @@
     "semantic_hash": ""
   },
   "futrat_mobile/lib/screens/forecasts_screen.dart": {
-    "mtime": 1792269891.1887965,
-    "seen": 1792270212.2852585,
-    "ast_hash": "f0223ac19f600b1b635a7397aa7be7c6",
+    "mtime": 1792681746.0714607,
+    "seen": 1792681938.4771347,
+    "ast_hash": "7b9b57d7cadc323483abb8383266af67",
     "semantic_hash": ""
   },
   "futrat_mobile/lib/screens/player_screen.dart": {
@@ -900,9 +900,9 @@
     "semantic_hash": ""
   },
   "futrat_mobile/lib/widgets/lineup_view.dart": {
-    "mtime": 1792335670.3083718,
-    "seen": 1792335729.00991,
-    "ast_hash": "2676aacd3b78ecbe0719ee84694e28b4",
+    "mtime": 1795469318.627975,
+    "seen": 1795470157.1987011,
+    "ast_hash": "fb9339970dfb9499d9aaa8bdf2838a46",
     "semantic_hash": ""
   },
   "futrat_mobile/lib/widgets/match_tile.dart": {
@@ -912,15 +912,15 @@
     "semantic_hash": ""
   },
   "futrat_mobile/test/forecasts_test.dart": {
-    "mtime": 1792249449.594194,
-    "seen": 1792250811.7211466,
-    "ast_hash": "4dba983dae31b0d6c3daa2508bf7fd3e",
+    "mtime": 1792681923.399063,
+    "seen": 1792681938.4807923,
+    "ast_hash": "52d7d5d586d3a5d9b40a443b18020f37",
     "semantic_hash": ""
   },
   "futrat_mobile/test/profiles_test.dart": {
-    "mtime": 1792318496.2506795,
-    "seen": 1792318874.4226642,
-    "ast_hash": "e279be03fc36e50efbbfb6fe7606c296",
+    "mtime": 1795469391.197641,
+    "seen": 1795470157.1987011,
+    "ast_hash": "991e842fd2b68dc80bc0138dfc2f604b",
     "semantic_hash": ""
   },
   "futrat_backend/docs/interactive-features.md": {
@@ -1212,9 +1212,9 @@
     "semantic_hash": ""
   },
   "futrat_backend/app/auth_errors.py": {
-    "mtime": 1792515658.7474823,
-    "seen": 1792516189.2660787,
-    "ast_hash": "ebf091298e73dbc6666a3326dd3786f1",
+    "mtime": 1795469655.1930034,
+    "seen": 1795470157.17083,
+    "ast_hash": "c2c3f3fea38799c3ebdc1142e503870c",
     "semantic_hash": ""
   },
   "futrat_backend/app/user_cleanup.py": {
@@ -1242,9 +1242,9 @@
     "semantic_hash": ""
   },
   "futrat_backend/docs/registration.md": {
-    "mtime": 1792516385.5682173,
-    "seen": 1792658881.855922,
-    "ast_hash": "7804601bcd41adf45b7e5f4ee24ba34b",
+    "mtime": 1795470023.6243682,
+    "seen": 1795470157.2101736,
+    "ast_hash": "29a9ee86679d734efb3550404d1cac0f",
     "semantic_hash": ""
   },
   "tasks/registration-fix.md": {
@@ -1272,9 +1272,117 @@
     "semantic_hash": ""
   },
   "futrat_backend/deploy/README.md": {
-    "mtime": 1792658666.8823795,
-    "seen": 1792658881.854922,
-    "ast_hash": "bec6f6456f731dc80143204987b36002",
+    "mtime": 1795470022.0789793,
+    "seen": 1795470157.2101736,
+    "ast_hash": "9a75347cda8507b522821ad743d92f13",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/core/tournament_menu.dart": {
+    "mtime": 1792681746.673036,
+    "seen": 1792681938.4760873,
+    "ast_hash": "053b1a5fa7f3b80915fedaeb4bd77af5",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/providers/tournament_menu_preferences.dart": {
+    "mtime": 1792681602.8296025,
+    "seen": 1792681938.4771347,
+    "ast_hash": "bbda3313d2283d1ce3b41944d7c301df",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/widgets/tournament_menu.dart": {
+    "mtime": 1793133806.4152706,
+    "seen": 1793133989.7451475,
+    "ast_hash": "2db3c510273cb246da1d2505d614a734",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/test/tournament_menu_test.dart": {
+    "mtime": 1793133929.516232,
+    "seen": 1793133989.7481487,
+    "ast_hash": "631c5625c2d0c998b5e630adfdc09a47",
+    "semantic_hash": ""
+  },
+  "tasks/menu-order-and-forecast-periods.md": {
+    "mtime": 1793134772.153622,
+    "seen": 1795470157.2186732,
+    "ast_hash": "2c2fe445a0a4730f8cc8fd8681ba7bb2",
+    "semantic_hash": ""
+  },
+  "tasks/production-deployment.md": {
+    "mtime": 1792672528.84071,
+    "seen": 1792681938.4890096,
+    "ast_hash": "92731c819f3f4055cffa21c883e0f0fa",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/test/player_actions_test.dart": {
+    "mtime": 1795469391.1850812,
+    "seen": 1795470157.1987011,
+    "ast_hash": "39720f60dba274ebe41b561b5e81676b",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/test/auth_session_test.dart": {
+    "mtime": 1793134570.61019,
+    "seen": 1793134616.244194,
+    "ast_hash": "27eeb483fc7fd327f0c02d10f204a8f8",
+    "semantic_hash": ""
+  },
+  "futrat_backend/tests/test_sessions.py": {
+    "mtime": 1795469557.088417,
+    "seen": 1795470157.1822317,
+    "ast_hash": "23d2f6b51d79c7c6da84d1b5c836d864",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/core/lineup_layout.dart": {
+    "mtime": 1795469656.6534252,
+    "seen": 1795470157.1907003,
+    "ast_hash": "5cb77ddd90f1e1993e830053c471d5d6",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/core/persistent_session.dart": {
+    "mtime": 1795470229.1359558,
+    "seen": 1795470285.0025418,
+    "ast_hash": "fbba8753cf436c91c5a3068586251159",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/test/lineup_layout_test.dart": {
+    "mtime": 1795469391.1695838,
+    "seen": 1795470157.1987011,
+    "ast_hash": "f54e8b44df4a5489eba7bf5a403b7c31",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/test/token_refresh_test.dart": {
+    "mtime": 1795470207.0728092,
+    "seen": 1795470285.0215392,
+    "ast_hash": "7197a1b4eb856215a42ee138e63eb29d",
+    "semantic_hash": ""
+  },
+  "futrat_backend/deploy/PERSISTENT_SESSIONS.md": {
+    "mtime": 1795470020.6050537,
+    "seen": 1795470157.2101736,
+    "ast_hash": "a87fa740a48450110de4bf829490489d",
+    "semantic_hash": ""
+  },
+  "tasks/persistent-session-and-lineup.md": {
+    "mtime": 1795470284.4714463,
+    "seen": 1795470285.0502167,
+    "ast_hash": "0f6691378b1a8f7c3fdae6367323129c",
+    "semantic_hash": ""
+  },
+  ".codex-attachments/6165bbb1-760b-4bc9-b1d0-132b2e7d690e/46111c9a-8cee-4ce2-bb40-d518750bb351/1000054269.jpg": {
+    "mtime": 1795468544.0221338,
+    "seen": 1795470157.2186732,
+    "ast_hash": "802b00673896d13027448943bead74c8",
+    "semantic_hash": ""
+  },
+  ".codex-attachments/6165bbb1-760b-4bc9-b1d0-132b2e7d690e/82d712a2-f433-4d68-8909-362b898f29a8/1000054267.jpg": {
+    "mtime": 1795468542.351237,
+    "seen": 1795470157.2186732,
+    "ast_hash": "492b865524e0cca4bc5a0605ee85af61",
+    "semantic_hash": ""
+  },
+  ".codex-attachments/6165bbb1-760b-4bc9-b1d0-132b2e7d690e/b4c8b553-7552-4d98-83c3-adc553cb5eab/1000054268.jpg": {
+    "mtime": 1795468543.210073,
+    "seen": 1795470157.2186732,
+    "ast_hash": "93af6016005ea973c64564bb6ccdc887",
     "semantic_hash": ""
   }
 }

@@ -3,8 +3,11 @@ import 'package:provider/provider.dart';
 import '../models/all_models.dart';
 import '../providers/data_provider.dart';
 import '../core/auth_gate.dart';
+import '../core/lineup_layout.dart';
 import '../screens/player_screen.dart';
 import 'match_tile.dart';
+
+enum _PlayerAction { statistics, rate }
 
 class LineupView extends StatefulWidget {
   final MatchModel match;
@@ -29,6 +32,72 @@ class _LineupViewState extends State<LineupView> {
     }
   }
 
+  Future<void> _showPlayerActions(LineupPlayer player) async {
+    final canRate = _canRate(player);
+    final action = await showModalBottomSheet<_PlayerAction>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Text(
+                  player.playerName,
+                  style: Theme.of(sheetContext).textTheme.titleLarge,
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.person_outline),
+                title: const Text('Открыть статистику'),
+                subtitle: player.playerId == null
+                    ? const Text('Профиль игрока пока недоступен')
+                    : null,
+                enabled: player.playerId != null,
+                onTap: player.playerId == null
+                    ? null
+                    : () =>
+                          Navigator.pop(sheetContext, _PlayerAction.statistics),
+              ),
+              ListTile(
+                leading: const Icon(Icons.star_outline),
+                title: const Text('Оценить за матч'),
+                subtitle: canRate
+                    ? null
+                    : Text(
+                        widget.match.status != 'FINISHED'
+                            ? 'Оценки доступны после завершения матча'
+                            : 'Оценивать можно только участвовавших игроков',
+                      ),
+                enabled: canRate,
+                onTap: canRate
+                    ? () => Navigator.pop(sheetContext, _PlayerAction.rate)
+                    : null,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (!mounted) return;
+    switch (action) {
+      case _PlayerAction.statistics:
+        _profile(player);
+      case _PlayerAction.rate:
+        widget.onRate(player);
+      case null:
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final game = widget.match;
@@ -44,19 +113,9 @@ class _LineupViewState extends State<LineupView> {
       ..sort((a, b) => (a.slot ?? 99).compareTo(b.slot ?? 99));
     final subs = rows.where((p) => !p.isStarter).toList();
     final scheme = game.formations['${team.id}'];
-    final formation = scheme
-        ?.split('-')
-        .map(int.tryParse)
-        .whereType<int>()
-        .toList();
+    final fieldRows = confirmedLineupRows(starters, scheme);
     final valid =
-        formation != null &&
-        formation.fold<int>(0, (a, b) => a + b) == 10 &&
-        starters.length == 11 &&
-        starters.map((p) => p.slot).toSet().length == 11 &&
-        starters.every(
-          (p) => p.slot != null && p.slot! >= 1 && p.slot! <= 11,
-        ) &&
+        fieldRows != null &&
         MediaQuery.textScalerOf(context).scale(12) <= 18 &&
         MediaQuery.sizeOf(context).width >= 300;
     return ListView(
@@ -106,7 +165,7 @@ class _LineupViewState extends State<LineupView> {
         ),
         const SizedBox(height: 10),
         if (_field && valid)
-          _pitch(starters, [1, ...formation])
+          _pitch(fieldRows)
         else ...[
           if (_field)
             const Padding(
@@ -157,14 +216,9 @@ class _LineupViewState extends State<LineupView> {
     );
   }
 
-  Widget _pitch(List<LineupPlayer> players, List<int> rows) {
-    var offset = 0;
-    final lines = <List<LineupPlayer>>[];
-    for (final count in rows) {
-      lines.add(players.sublist(offset, offset + count));
-      offset += count;
-    }
+  Widget _pitch(List<List<LineupPlayer>> lines) {
     return AspectRatio(
+      key: const ValueKey('lineup-pitch'),
       aspectRatio: 0.74,
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -203,10 +257,11 @@ class _LineupViewState extends State<LineupView> {
   }
 
   Widget _fieldPlayer(LineupPlayer player) => Semantics(
+    key: ValueKey('field-player-${player.id}'),
     label: '${player.playerName}, оценка ${_rating(player)}',
     button: true,
     child: InkWell(
-      onTap: () => _profile(player),
+      onTap: () => _showPlayerActions(player),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -227,9 +282,7 @@ class _LineupViewState extends State<LineupView> {
                   color: const Color(0xff152d22),
                   borderRadius: BorderRadius.circular(4),
                   child: InkWell(
-                    onTap: _canRate(player)
-                        ? () => widget.onRate(player)
-                        : null,
+                    onTap: () => _showPlayerActions(player),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 4,
@@ -283,19 +336,19 @@ class _LineupViewState extends State<LineupView> {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 2),
         leading: InkWell(
-          onTap: () => _profile(player),
+          onTap: () => _showPlayerActions(player),
           child: PlayerPhoto(url: player.photoUrl),
         ),
         title: Text('${player.jersey} ${player.playerName}'),
         subtitle: Text(
           '${player.ratingCount} голосов · ${player.minutes ?? '—'} мин',
         ),
-        onTap: () => _profile(player),
+        onTap: () => _showPlayerActions(player),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextButton(
-              onPressed: _canRate(player) ? () => widget.onRate(player) : null,
+              onPressed: () => _showPlayerActions(player),
               child: Text(_rating(player)),
             ),
             if (player.playerId != null)

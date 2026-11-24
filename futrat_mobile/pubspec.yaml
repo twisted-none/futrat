@@ -2,7 +2,7 @@ name: futrat_mobile
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 2.0.0+4
+version: 2.2.0+10
 
 environment:
   sdk: ^3.10.4

@@ -1,15 +1,19 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../core/api_client.dart';
 import '../models/all_models.dart';
+import '../core/persistent_session.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final ApiClient _client = ApiClient();
-
-  final _storage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-  );
+  AuthProvider({ApiClient? client}) : _client = client ?? ApiClient() {
+    _session.addListener(_sessionCleared);
+  }
+  final ApiClient _client;
+  FlutterSecureStorage get _storage => _client.storage;
+  PersistentSession get _session => _client.session;
+  int _revision = 0;
 
   User? _currentUser;
   bool _isLoading = false;
@@ -29,17 +33,62 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> checkAuth() async {
-    final token = await _storage.read(key: 'auth_token');
-    if (token != null) {
-      try {
-        await fetchProfile();
-      } catch (e) {
-        await logout();
+    if (_isLoading) return;
+    final revision = ++_revision;
+    try {
+      var token = await _storage.read(key: 'auth_token');
+      if (revision != _revision) return;
+      if (token == null || token.isEmpty) {
+        token = await _session.refresh(null);
+        if (revision != _revision) return;
       }
-    } else {
-      _currentUser = null;
+      if (token == null || token.isEmpty) {
+        _currentUser = null;
+        notifyListeners();
+        return;
+      }
+      final cached = await _storage.read(key: 'auth_profile');
+      if (revision != _revision) return;
+      _currentUser = _cachedUser(cached, token);
+      notifyListeners();
+      await _fetchProfile(token, revision);
+    } on DioException catch (error) {
+      if (revision != _revision) return;
+      if (error.response?.statusCode == 401) {
+        await logout();
+      } else {
+        _errorMessage =
+            'Не удалось проверить вход. Сохранённая сессия остаётся на устройстве';
+        notifyListeners();
+      }
+    } catch (_) {
+      if (revision != _revision) return;
+      _errorMessage = 'Не удалось восстановить вход. Попробуйте ещё раз позже';
       notifyListeners();
     }
+  }
+
+  User? _cachedUser(String? cached, String token) {
+    if (cached == null) return null;
+    try {
+      final session = jsonDecode(cached);
+      if (session is! Map || session['token'] != token) return null;
+      final user = session['user'];
+      if (user is! Map ||
+          user['id'] is! int ||
+          user['id'] <= 0 ||
+          user['username'] is! String ||
+          (user['username'] as String).isEmpty) {
+        return null;
+      }
+      return User.fromJson(Map<String, dynamic>.from(user));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _write(Future<void> Function() action) {
+    return _session.write(action);
   }
 
   Future<void> register(String username, String password) => _authenticate(
@@ -60,39 +109,52 @@ class AuthProvider extends ChangeNotifier {
     required bool registering,
   }) async {
     if (_isLoading) return;
+    final revision = ++_revision;
     _errorMessage = null;
     _setLoading(true);
     bool receivedToken = false;
+    bool invalidToken = false;
     try {
       final response = await _client.dio.post(path, data: data);
       final token = response.data is Map ? response.data['access_token'] : null;
       if (token is! String || token.isEmpty) throw const FormatException();
-      await _storage.write(key: 'auth_token', value: token);
+      if (revision != _revision) return;
+      final refresh = response.data['refresh_token'];
+      await _session.saveTokens(
+        token,
+        refresh is String ? refresh : null,
+        isCurrent: () => revision == _revision,
+      );
+      if (revision != _revision) return;
+      _currentUser = null;
       receivedToken = true;
-      await fetchProfile();
+      await _fetchProfile(token, revision);
     } on DioException catch (error) {
+      if (revision != _revision) return;
+      invalidToken = receivedToken && error.response?.statusCode == 401;
       _errorMessage = receivedToken
           ? (registering
                 ? 'Аккаунт создан, но профиль не загрузился. Попробуйте войти'
                 : 'Не удалось загрузить профиль. Попробуйте войти ещё раз')
           : _readableError(error);
     } catch (_) {
+      if (revision != _revision) return;
       _errorMessage = receivedToken
           ? (registering
                 ? 'Аккаунт создан, но профиль не загрузился. Попробуйте войти'
                 : 'Не удалось загрузить профиль. Попробуйте войти ещё раз')
           : 'Не удалось завершить вход. Попробуйте ещё раз';
     } finally {
-      if (_errorMessage != null && receivedToken) {
+      if (invalidToken && revision == _revision) {
         _currentUser = null;
         try {
-          await _storage.delete(key: 'auth_token');
+          await _session.clear(invalid: true);
         } catch (_) {
           _errorMessage =
               'Не удалось обновить данные входа на устройстве. Попробуйте ещё раз';
         }
       }
-      _setLoading(false);
+      if (revision == _revision) _setLoading(false);
     }
   }
 
@@ -132,20 +194,57 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> fetchProfile() async {
-    try {
-      final response = await _client.dio.get('/auth/me');
-      _currentUser = User.fromJson(response.data);
-      notifyListeners();
-    } catch (e) {
-      rethrow;
+    final revision = _revision;
+    final token = await _storage.read(key: 'auth_token');
+    if (token != null && revision == _revision) {
+      await _fetchProfile(token, revision);
     }
   }
 
-  Future<void> logout() async {
-    await _storage.delete(key: 'auth_token');
-    _currentUser = null;
+  Future<void> _fetchProfile(String token, int revision) async {
+    final response = await _client.dio.get(
+      '/auth/me',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+    if (revision != _revision) return;
+    final user = User.fromJson(response.data);
+    final verifiedToken = await _storage.read(key: 'auth_token');
+    if (revision != _revision || verifiedToken == null) return;
+    await _write(() async {
+      if (revision != _revision) return;
+      await _storage.write(
+        key: 'auth_profile',
+        value: jsonEncode({
+          'token': verifiedToken,
+          'user': {'id': user.id, 'username': user.username},
+        }),
+      );
+    });
+    if (revision != _revision) return;
+    _currentUser = user;
     _errorMessage = null;
     notifyListeners();
+  }
+
+  Future<void> logout() async {
+    await _session.clear(revoke: true);
+  }
+
+  void _sessionCleared() {
+    _revision++;
+    _currentUser = null;
+    _isLoading = false;
+    _errorMessage = _session.wasRejected
+        ? 'Сессия недействительна. Войдите снова'
+        : null;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _session.removeListener(_sessionCleared);
+    _revision++;
+    super.dispose();
   }
 
   void _setLoading(bool value) {

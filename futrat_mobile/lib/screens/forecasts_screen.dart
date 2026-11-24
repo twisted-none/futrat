@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -16,17 +17,21 @@ String moscowDay(DateTime date) =>
 
 class ForecastsScreen extends StatefulWidget {
   final ForecastApi? api;
-  const ForecastsScreen({super.key, this.api});
+  final DateTime Function()? now;
+  const ForecastsScreen({super.key, this.api, this.now});
   @override
   State<ForecastsScreen> createState() => _ForecastsScreenState();
 }
 
 class _ForecastsScreenState extends State<ForecastsScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final TabController _tabs = TabController(length: 3, vsync: this);
   late final ForecastApi _api = widget.api ?? ForecastApi();
-  String _day = moscowDay(DateTime.now());
-  String? _month = DateFormat('yyyy-MM').format(moscowTime(DateTime.now()));
+  DateTime _now() => widget.now?.call() ?? DateTime.now();
+  late String _day = moscowDay(_now());
+  late String _observedMonth = _currentMonth();
+  late String? _month = _observedMonth;
+  Timer? _monthTimer;
   int _tab = 0, _used = 0, _generation = 0, _rankTotal = 0;
   bool _loading = true, _busy = false, _historyMore = false;
   bool _favoritesOnly = false;
@@ -37,20 +42,75 @@ class _ForecastsScreenState extends State<ForecastsScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _scheduleMonthCheck();
     Future.microtask(_load);
+  }
+
+  String _currentMonth() {
+    final current = DateFormat('yyyy-MM').format(moscowTime(_now()));
+    return current.compareTo('2026-10') < 0 ? '2026-10' : current;
+  }
+
+  List<DateTime> _months() {
+    final current = DateTime.parse('${_currentMonth()}-01');
+    final count = (current.year - 2026) * 12 + current.month - 10 + 1;
+    return List.generate(
+      count,
+      (i) => DateTime(current.year, current.month - i),
+    );
+  }
+
+  void _scheduleMonthCheck() {
+    _monthTimer?.cancel();
+    final now = _now().toUtc();
+    final moscow = moscowTime(now);
+    final next = DateTime.utc(
+      moscow.year,
+      moscow.month + 1,
+    ).subtract(const Duration(hours: 3));
+    final remaining = next.difference(now);
+    _monthTimer = Timer(
+      remaining.isNegative ? const Duration(seconds: 1) : remaining,
+      _checkMonth,
+    );
+  }
+
+  void _checkMonth() {
+    if (!mounted) return;
+    final current = _currentMonth();
+    if (current != _observedMonth) {
+      setState(() {
+        _observedMonth = current;
+        _month = current;
+      });
+      if (_tab == 2) _load();
+    }
+    _scheduleMonthCheck();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkMonth();
+    } else {
+      _monthTimer?.cancel();
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _monthTimer?.cancel();
     _tabs.dispose();
     super.dispose();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool keepList = false}) async {
     final generation = ++_generation;
     final signedIn = context.read<AuthProvider>().isAuthenticated;
     setState(() {
-      _loading = true;
+      if (!keepList) _loading = true;
       _error = null;
     });
     try {
@@ -87,7 +147,13 @@ class _ForecastsScreenState extends State<ForecastsScreen>
       }
     } catch (error) {
       if (mounted && generation == _generation) {
-        setState(() => _error = _message(error));
+        if (keepList) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(_message(error))));
+        } else {
+          setState(() => _error = _message(error));
+        }
       }
     } finally {
       if (mounted && generation == _generation) {
@@ -145,7 +211,7 @@ class _ForecastsScreenState extends State<ForecastsScreen>
         setState(() => _busy = true);
         try {
           await _api.choose(match.id, outcome);
-          if (mounted) await _load();
+          if (mounted) await _load(keepList: true);
         } catch (error) {
           if (mounted) {
             ScaffoldMessenger.of(
@@ -164,7 +230,7 @@ class _ForecastsScreenState extends State<ForecastsScreen>
     setState(() => _busy = true);
     try {
       await _api.cancel(id);
-      if (mounted) await _load();
+      if (mounted) await _load(keepList: true);
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -186,7 +252,7 @@ class _ForecastsScreenState extends State<ForecastsScreen>
               (m) =>
                   moscowDay(m.dateTime) == _day &&
                   m.status == 'SCHEDULED' &&
-                  m.dateTime.isAfter(DateTime.now()) &&
+                  m.dateTime.isAfter(_now()) &&
                   (!_favoritesOnly ||
                       data.isTeamFavorite(m.homeTeam.id) ||
                       data.isTeamFavorite(m.awayTeam.id) ||
@@ -285,9 +351,7 @@ class _ForecastsScreenState extends State<ForecastsScreen>
                       value: 'all',
                       child: Text('За всё время'),
                     ),
-                    ...List.generate(12, (i) {
-                      final now = moscowTime(DateTime.now());
-                      final month = DateTime(now.year, now.month - i);
+                    ..._months().map((month) {
                       final value = DateFormat('yyyy-MM').format(month);
                       return DropdownMenuItem(
                         value: value,
@@ -346,8 +410,8 @@ class _ForecastsScreenState extends State<ForecastsScreen>
     final picked = await showDatePicker(
       context: context,
       initialDate: DateTime.parse(_day),
-      firstDate: DateTime.now().subtract(const Duration(days: 730)),
-      lastDate: DateTime.now().add(const Duration(days: 730)),
+      firstDate: _now().subtract(const Duration(days: 730)),
+      lastDate: _now().add(const Duration(days: 730)),
     );
     if (picked != null) {
       setState(() => _day = DateFormat('yyyy-MM-dd').format(picked));

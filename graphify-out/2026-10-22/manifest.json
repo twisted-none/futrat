@@ -6,27 +6,27 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "futrat_backend/app/config.py": {
-    "mtime": 1792190914.671516,
-    "seen": 1792235609.9952085,
-    "ast_hash": "29c1151c76e2ed13c624e35ca9ec8e04",
+    "mtime": 1792658305.8955655,
+    "seen": 1792658881.8409214,
+    "ast_hash": "da5c31a72a00b5b09ae5cf102c0fea61",
     "semantic_hash": ""
   },
   "futrat_backend/app/database.py": {
-    "mtime": 1792141893.5750835,
-    "seen": 1792142115.9220147,
-    "ast_hash": "b528b054dfbe11dd0a6c69ccd99c522e",
+    "mtime": 1792658307.1164403,
+    "seen": 1792658881.8409214,
+    "ast_hash": "e32e947badf70be7d7e1ab2612531d8f",
     "semantic_hash": ""
   },
   "futrat_backend/app/initial_data.py": {
-    "mtime": 1792341455.3589182,
-    "seen": 1792342286.4076412,
-    "ast_hash": "5e830dc4ed69d357451e50e4159c711f",
+    "mtime": 1792658306.5080578,
+    "seen": 1792658881.8409214,
+    "ast_hash": "53d58040889ecc98b730cdeaf35f9892",
     "semantic_hash": ""
   },
   "futrat_backend/app/main.py": {
-    "mtime": 1792515728.621205,
-    "seen": 1792516189.2660787,
-    "ast_hash": "10f67f109f1322443f29781e78896117",
+    "mtime": 1792658307.722206,
+    "seen": 1792658881.8419223,
+    "ast_hash": "c8ff58b7e52de1f090f719f2c92f97a5",
     "semantic_hash": ""
   },
   "futrat_backend/app/models.py": {
@@ -756,9 +756,9 @@
     "semantic_hash": ""
   },
   "futrat_backend/README.md": {
-    "mtime": 1792250790.2790973,
-    "seen": 1792250811.7211466,
-    "ast_hash": "1ca688da0378fe3bb76ffa058879db01",
+    "mtime": 1792658462.1017494,
+    "seen": 1792658881.854922,
+    "ast_hash": "4dc3db64da92606007846060435aedad",
     "semantic_hash": ""
   },
   "futrat_mobile/lib/core/auth_gate.dart": {
@@ -1140,9 +1140,9 @@
     "semantic_hash": ""
   },
   "futrat_mobile/docs/local-network.md": {
-    "mtime": 1792337293.695029,
-    "seen": 1792342286.4076412,
-    "ast_hash": "7c9c0cdacfe78e2517fc26a108a69d6b",
+    "mtime": 1792516387.1110826,
+    "seen": 1792658881.856922,
+    "ast_hash": "9a08375788c1f9cb8bf79baa375fb8df",
     "semantic_hash": ""
   },
   "futrat_backend/app/live_clock.py": {
@@ -1242,15 +1242,39 @@
     "semantic_hash": ""
   },
   "futrat_backend/docs/registration.md": {
-    "mtime": 1792516156.839671,
-    "seen": 1792516189.2660787,
-    "ast_hash": "75f2cc5a116b462f1c70a191673b02f5",
+    "mtime": 1792516385.5682173,
+    "seen": 1792658881.855922,
+    "ast_hash": "7804601bcd41adf45b7e5f4ee24ba34b",
     "semantic_hash": ""
   },
   "tasks/registration-fix.md": {
-    "mtime": 1792516157.4313514,
-    "seen": 1792516189.2660787,
-    "ast_hash": "8715ab0f5a022332eaff080b54f12ada",
+    "mtime": 1792516386.3946111,
+    "seen": 1792658881.859922,
+    "ast_hash": "0b974af318655776ceb00cd9f14a83de",
+    "semantic_hash": ""
+  },
+  "futrat_backend/deploy/backup.sh": {
+    "mtime": 1792658460.201853,
+    "seen": 1792658881.8439221,
+    "ast_hash": "2765803376e068f147ebfa5d4eecdac9",
+    "semantic_hash": ""
+  },
+  "futrat_backend/tests/test_production.py": {
+    "mtime": 1792658266.9483006,
+    "seen": 1792658881.8449223,
+    "ast_hash": "02d69588ae82ee656279139617cc59c2",
+    "semantic_hash": ""
+  },
+  "futrat_backend/compose.prod.yml": {
+    "mtime": 1792658456.2943769,
+    "seen": 1792658881.854922,
+    "ast_hash": "7d6bc5de2acdafdc75f5571b0e995a45",
+    "semantic_hash": ""
+  },
+  "futrat_backend/deploy/README.md": {
+    "mtime": 1792658666.8823795,
+    "seen": 1792658881.854922,
+    "ast_hash": "bec6f6456f731dc80143204987b36002",
     "semantic_hash": ""
   }
 }

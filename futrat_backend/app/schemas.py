@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator, AliasChoices
 from typing import List, Optional
 from datetime import datetime
+from pydantic import SecretStr
 from app.credentials import validate_nickname, validate_new_password
 
 
@@ -53,6 +54,12 @@ class UserUpdate(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    refresh_token: str
+    expires_in: int
+
+
+class SessionKey(BaseModel):
+    refresh_token: SecretStr = Field(min_length=32, max_length=128)
 
 
 class UserResponse(BaseModel):

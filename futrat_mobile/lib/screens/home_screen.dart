@@ -12,6 +12,7 @@ import '../widgets/grouped_matches_list.dart';
 import '../widgets/round_selector.dart';
 import '../widgets/team_link.dart';
 import '../widgets/football_logo.dart';
+import '../widgets/tournament_menu.dart';
 
 // --- КЛАСС ДЛЯ БЕЗОПАСНОГО ОТОБРАЖЕНИЯ И ПЕРЕРАСЧЕТА ТАБЛИЦЫ ---
 class UITableRow {
@@ -387,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
           ),
-          drawer: _buildDrawer(context, data, theme),
+          drawer: const TournamentDrawer(),
           body: data.isLoading
               ? Center(
                   child: CircularProgressIndicator(color: theme.accentColor),
@@ -1998,112 +1999,6 @@ class _HomeScreenState extends State<HomeScreen> {
               .toList(),
         ],
       ],
-    );
-  }
-
-  Widget _buildDrawer(
-    BuildContext context,
-    DataProvider data,
-    AppCustomTheme theme,
-  ) {
-    Color drawerTitleColor = theme.cardBg.computeLuminance() > 0.5
-        ? Colors.black
-        : Colors.white;
-    return Drawer(
-      backgroundColor: theme.scaffoldBg,
-      child: Column(
-        children: [
-          DrawerHeader(
-            decoration: BoxDecoration(color: theme.cardBg),
-            child: Center(
-              child: Text(
-                "FUTRAT",
-                style: TextStyle(
-                  color: drawerTitleColor,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                ),
-              ),
-            ),
-          ),
-          ListTile(
-            leading: Icon(Icons.today, color: theme.textColor),
-            title: Text(
-              "Матчи сегодня",
-              style: TextStyle(
-                color: theme.textColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            onTap: () {
-              data.selectLeague(data.todayVirtual);
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: const Icon(
-              Icons.play_circle_fill,
-              color: Colors.redAccent,
-            ),
-            title: Text(
-              "Матчи сейчас",
-              style: TextStyle(
-                color: theme.textColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            onTap: () {
-              data.selectLeague(data.liveVirtual);
-              Navigator.pop(context);
-            },
-          ),
-          Divider(color: theme.dividerColor),
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.zero,
-              itemCount: data.tournaments.length,
-              itemBuilder: (ctx, i) {
-                final t = data.tournaments[i];
-                final isSel = t.id == data.selectedLeague?.id;
-                final isFav = data.isLeagueFavorite(t.id);
-                String drawerName = t.name.replaceAll(
-                  RegExp(r'\s*\([^)]*\)'),
-                  '',
-                );
-                return ListTile(
-                  leading: _buildLogo(t.logoUrl, theme, size: 36, padding: 4),
-                  title: Text(
-                    drawerName,
-                    style: TextStyle(
-                      color: isSel ? theme.accentColor : theme.textColor,
-                      fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                  trailing: IconButton(
-                    icon: Icon(
-                      isFav ? Icons.star : Icons.star_border,
-                      color: isFav ? Colors.amber : theme.dimTextColor,
-                    ),
-                    onPressed: () => runAuthenticatedAction(
-                      context,
-                      action: 'добавить лигу в избранное',
-                      onAuthenticated: (resumed) async {
-                        if (resumed && data.isLeagueFavorite(t.id)) return;
-                        await data.toggleTournamentFavorite(t.id);
-                      },
-                    ),
-                  ),
-                  onTap: () {
-                    data.selectLeague(t);
-                    Navigator.pop(context);
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
     );
   }
 
