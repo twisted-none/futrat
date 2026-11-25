@@ -34,6 +34,15 @@ def get_tournaments(db: Session = Depends(database.get_db)):
     return db.query(models.Tournament).all()
 
 
+@router.get("/team-badges", response_model=List[schemas.TeamBadgeResponse])
+def get_team_badges(ids: List[int] = Query(default=[], max_length=100),
+                    db: Session = Depends(database.get_db)):
+    if not ids:
+        return []
+    return db.query(models.Team).filter(models.Team.id.in_(set(ids)),
+        models.Team.logo_url.is_not(None), models.Team.logo_url != "").all()
+
+
 @router.get("/matches", response_model=List[schemas.MatchResponse])
 def get_matches(live: bool = False, db: Session = Depends(database.get_db)):
     now = datetime.now(timezone.utc)

@@ -68,6 +68,9 @@ def sync_sources(*, full, force=False):
     from app.goal_sync import sync_goal
     # GOAL's cache keeps minute scheduler calls inside the free daily budget.
     if full:
+        if {"rus.1", "rus.cup"}.intersection(TARGET_LEAGUES):
+            from app.team_badges import repair_russian_badges
+            repair_russian_badges(SessionLocal)
         sync_goal({code: TARGET_LEAGUES[code] for code in GOAL_COMPETITIONS if code in TARGET_LEAGUES},
                   SessionLocal, full=full, force=force)
     espn = {code: name for code, name in TARGET_LEAGUES.items()

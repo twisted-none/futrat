@@ -32,6 +32,21 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Restore the local UI without waiting for a reachable server. API access
+  /// still requires a valid server session and is checked in the background.
+  Future<void> restoreCachedSession() async {
+    final revision = ++_revision;
+    try {
+      final token = await _storage.read(key: 'auth_token');
+      final cached = await _storage.read(key: 'auth_profile');
+      if (revision != _revision) return;
+      _currentUser = token == null ? null : _cachedUser(cached, token);
+      notifyListeners();
+    } catch (_) {
+      // A temporary local storage error must not erase the saved session.
+    }
+  }
+
   Future<void> checkAuth() async {
     if (_isLoading) return;
     final revision = ++_revision;

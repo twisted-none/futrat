@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import '../core/badge_cache.dart';
 
 /// Transparent padding carries no weight in the badge's contrast decision.
 bool logoNeedsLightBackground(Uint8List rgba) {
@@ -33,11 +35,13 @@ class FootballLogo extends StatefulWidget {
     this.size = 28,
     this.padding = 0,
     this.framed = false,
+    this.cache,
   });
   final String? url;
   final ImageProvider? image;
   final double size, padding;
   final bool framed;
+  final BadgeCache? cache;
   static const lightBackground = Color(0xFFF1F3F5);
 
   @override
@@ -51,7 +55,25 @@ class _FootballLogoState extends State<FootballLogo> {
   ImageStream? _stream;
   ImageStreamListener? _listener;
   bool _lightTile = false;
+  bool _broken = false;
+  bool _dark = false;
+  late ImageConfiguration _configuration;
   int _generation = 0;
+  BadgeCache get _cache => widget.cache ?? BadgeCache.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _cache.addListener(_badgeReady);
+  }
+
+  void _badgeReady() {
+    if (mounted &&
+        (_provider == null || _broken) &&
+        _cache.latestReadyUrl == widget.url) {
+      setState(_resolve);
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -62,7 +84,13 @@ class _FootballLogoState extends State<FootballLogo> {
   @override
   void didUpdateWidget(FootballLogo oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.url != widget.url || oldWidget.image != widget.image) {
+    if (oldWidget.cache != widget.cache) {
+      (oldWidget.cache ?? BadgeCache.instance).removeListener(_badgeReady);
+      _cache.addListener(_badgeReady);
+    }
+    if (oldWidget.url != widget.url ||
+        oldWidget.image != widget.image ||
+        oldWidget.cache != widget.cache) {
       _resolve();
     }
   }
@@ -76,18 +104,25 @@ class _FootballLogoState extends State<FootballLogo> {
 
   void _resolve() {
     _disconnect();
+    // Register inherited-widget dependencies before asynchronous disk access.
+    _dark = Theme.of(context).brightness == Brightness.dark;
+    _configuration = createLocalImageConfiguration(context);
     _lightTile = false;
+    _broken = false;
     final url = widget.url;
-    final original =
-        widget.image ??
-        (url == null || url.isEmpty
-            ? null
-            : NetworkImage(
-                Uri.https('wsrv.nl', '/', {
-                  'url': url.replaceFirst(RegExp(r'^https?://'), ''),
-                  'output': 'png',
-                }).toString(),
-              ));
+    if (widget.image != null || url == null || url.isEmpty) {
+      _useImage(widget.image);
+      return;
+    }
+    _provider = null;
+    final generation = _generation;
+    _cache.get(url).then((file) {
+      if (!mounted || generation != _generation || file == null) return;
+      setState(() => _useImage(FileImage(file)));
+    });
+  }
+
+  void _useImage(ImageProvider? original) {
     _provider = original == null
         ? null
         : ResizeImage(
@@ -97,12 +132,12 @@ class _FootballLogoState extends State<FootballLogo> {
             policy: ResizeImagePolicy.fit,
             allowUpscaling: false,
           );
-    if (_provider == null || Theme.of(context).brightness != Brightness.dark) {
+    if (_provider == null || !_dark) {
       return;
     }
     final provider = _provider!;
     final generation = _generation;
-    _stream = provider.resolve(createLocalImageConfiguration(context));
+    _stream = provider.resolve(_configuration);
     _listener = ImageStreamListener(
       (info, synchronousCall) {
         if (!_contrast.containsKey(provider)) {
@@ -117,10 +152,17 @@ class _FootballLogoState extends State<FootballLogo> {
         });
       },
       onError: (Object error, StackTrace? stack) {
-        // The Image below renders a readable placeholder on network/decode errors.
+        _imageFailed();
       },
     );
     _stream!.addListener(_listener!);
+  }
+
+  void _imageFailed() {
+    if (!_broken && widget.image == null && widget.url != null) {
+      _broken = true;
+      unawaited(_cache.invalidate(widget.url!));
+    }
   }
 
   static Future<bool> _analyze(ui.Image image) async {
@@ -141,6 +183,7 @@ class _FootballLogoState extends State<FootballLogo> {
 
   @override
   void dispose() {
+    _cache.removeListener(_badgeReady);
     _disconnect();
     super.dispose();
   }
@@ -183,7 +226,10 @@ class _FootballLogoState extends State<FootballLogo> {
           : Image(
               image: _provider!,
               fit: BoxFit.contain,
-              errorBuilder: (_, error, stack) => placeholder(),
+              errorBuilder: (_, error, stack) {
+                _imageFailed();
+                return placeholder();
+              },
             ),
     );
   }

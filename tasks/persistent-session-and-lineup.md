@@ -6,10 +6,9 @@
   JWTs with a revocable device session that can renew them without a password.
 - Separately approved: fix player placement, preserve goalkeeper-at-bottom
   orientation, and show a list when exact roles cannot be confirmed.
-- Installation is explicitly deferred by the user; prepare the APK only.
-- Proposed but awaiting approval: one daily public fixture/tournament snapshot
-  expiring at Moscow midnight and permanent background-prefetched team/league
-  badge files. No daily/disk-badge cache implementation has been changed yet.
+- APK 2.2.0+10 was installed after the user's subsequent installation request.
+- The daily public snapshot and permanent badge cache were subsequently approved
+  and implemented on 25 November 2026; see `daily-public-cache.md`.
 
 ## Implemented
 
@@ -28,7 +27,8 @@
   establish a reliable full layout, the list fallback remains available.
 - The first APK is 2.2.0+10, API https://176.108.255.248. Permanent sign-in requires
   uploading/rebuilding the Backend through Deploy Desk, then signing in once.
-  The public server was checked and does not yet have `/auth/refresh`.
+  The public server was rechecked on 25 November: readiness is healthy and
+  `/auth/refresh` is present after the user's deployment.
 
 ## Sources
 

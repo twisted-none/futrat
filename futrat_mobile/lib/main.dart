@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -28,7 +29,7 @@ void main() async {
   final themeProvider = ThemeProvider();
   final dataProvider = DataProvider();
 
-  await Future.wait([authProvider.checkAuth(), themeProvider.ready]);
+  await Future.wait([authProvider.restoreCachedSession(), themeProvider.ready]);
 
   runApp(
     MultiProvider(
@@ -40,6 +41,7 @@ void main() async {
       child: const FutratApp(),
     ),
   );
+  unawaited(authProvider.checkAuth());
 }
 
 class FutratApp extends StatefulWidget {

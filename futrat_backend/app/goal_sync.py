@@ -35,13 +35,17 @@ def team_key(name):
 
 
 def resolve_team(db, external_id, name, badge=None):
+    from app.team_badges import fill_badge
     mapping = db.get(models.ProviderTeam, ("goal", str(external_id)))
     if mapping:
-        return db.get(models.Team, mapping.team_id)
+        team = db.get(models.Team, mapping.team_id)
+        fill_badge(team, badge)
+        return team
     candidates = [team for team in db.query(models.Team) if team_key(team.name) == team_key(name)]
     if len(candidates) > 1:
         raise GoalError("Ambiguous GOAL team mapping; explicit alias required")
-    team = candidates[0] if candidates else models.Team(name=name, logo_url=badge, country="Global")
+    team = candidates[0] if candidates else models.Team(name=name, country="Global")
+    fill_badge(team, badge)
     db.add(team)
     db.flush()
     db.add(models.ProviderTeam(provider="goal", external_id=str(external_id), team_id=team.id))
@@ -171,7 +175,19 @@ def sync_goal(leagues, sessions, *, full=True, force=False):
                     fixtures = api.pages("/fixtures", {"leagueId": league["id"],
                         "from": lower.date().isoformat(), "to": upper.date().isoformat()},
                         ttl=timedelta(hours=6) if full else timedelta(minutes=10), force=force)
+                    catalog = []
+                    if full and code == "rus.cup":
+                        from app.team_badges import goal_catalog_needed, goal_team_catalog
+                        if goal_catalog_needed(db, fixtures):
+                            db.commit()  # Release the read transaction before cache/quota writes.
+                            try:
+                                catalog = goal_team_catalog(api, league["id"])
+                            except GoalError:
+                                logger.warning("rus.cup: team badges unavailable; fixture import continues")
                     saved = store_fixtures(db, tournament, fixtures, start, end, league_id=league["id"])
+                    if catalog:
+                        from app.team_badges import apply_goal_catalog
+                        apply_goal_catalog(db, catalog)
                     if saved:
                         state = db.get(models.TournamentSyncState, tournament.id)
                         if not state:

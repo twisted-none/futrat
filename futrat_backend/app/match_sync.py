@@ -180,6 +180,10 @@ def store_day(db, tournament, state, day, data):
                 teams[name] = models.Team(name=name, country="Global", logo_url=item.get("logo"))
                 db.add(teams[name])
                 db.flush()
+            from app.team_badges import fill_badge
+            logos = item.get("logos") or []
+            fill_badge(teams[name], item.get("logo") or next(
+                (logo.get("href") for logo in logos if logo.get("href")), None))
             pair.append(teams[name])
         if len(pair) != 2:
             continue

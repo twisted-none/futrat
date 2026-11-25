@@ -82,6 +82,13 @@ class TeamResponse(TeamBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class TeamBadgeResponse(BaseModel):
+    id: int
+    logo_url: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class TournamentResponse(BaseModel):
     id: int
     name: str

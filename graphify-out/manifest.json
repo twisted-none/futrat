@@ -18,9 +18,9 @@
     "semantic_hash": ""
   },
   "futrat_backend/app/initial_data.py": {
-    "mtime": 1792658306.5080578,
-    "seen": 1792658881.8409214,
-    "ast_hash": "53d58040889ecc98b730cdeaf35f9892",
+    "mtime": 1795601773.8663905,
+    "seen": 1795602133.6808863,
+    "ast_hash": "4748eeb92720e80adaec682ff4650f1b",
     "semantic_hash": ""
   },
   "futrat_backend/app/main.py": {
@@ -48,9 +48,9 @@
     "semantic_hash": ""
   },
   "futrat_backend/app/routers/data.py": {
-    "mtime": 1792341457.681087,
-    "seen": 1792342286.4076412,
-    "ast_hash": "b3f00ebac3390ebb49c895387d24afd5",
+    "mtime": 1795601776.8247757,
+    "seen": 1795602133.6818852,
+    "ast_hash": "57759e23c64d266a8ee51fd5ca80f5db",
     "semantic_hash": ""
   },
   "futrat_backend/app/routers/predictions.py": {
@@ -66,9 +66,9 @@
     "semantic_hash": ""
   },
   "futrat_backend/app/schemas.py": {
-    "mtime": 1795468739.409086,
-    "seen": 1795470157.180006,
-    "ast_hash": "edf585e5581660bb4bf22faffcd6f380",
+    "mtime": 1795601776.0896623,
+    "seen": 1795602133.6828852,
+    "ast_hash": "eeae6982ab70a6f0e176112e84a6d92d",
     "semantic_hash": ""
   },
   "futrat_backend/app/security.py": {
@@ -156,9 +156,9 @@
     "semantic_hash": "dfb3c0564165bec2e8b5985f4b9fc05b"
   },
   "futrat_mobile/lib/main.dart": {
-    "mtime": 1792341544.164383,
-    "seen": 1792342286.4076412,
-    "ast_hash": "193bfc25cb660bf695c9b028fcf66fac",
+    "mtime": 1795600392.7858138,
+    "seen": 1795600884.989144,
+    "ast_hash": "21bb1ae0c7f5c31d93cf75a7df861129",
     "semantic_hash": ""
   },
   "futrat_mobile/lib/models/all_models.dart": {
@@ -168,15 +168,15 @@
     "semantic_hash": ""
   },
   "futrat_mobile/lib/providers/auth_provider.dart": {
-    "mtime": 1795470230.798642,
-    "seen": 1795470285.0055375,
-    "ast_hash": "55b0bc9552dac7d04a129959242b5a1b",
+    "mtime": 1795600392.1659698,
+    "seen": 1795600884.989144,
+    "ast_hash": "95973857871c817f4f753aa96d336993",
     "semantic_hash": ""
   },
   "futrat_mobile/lib/providers/data_provider.dart": {
-    "mtime": 1792341996.8373454,
-    "seen": 1792342286.4076412,
-    "ast_hash": "59cd12bf07d59d2cb2183bdb71aaf0e9",
+    "mtime": 1795602086.4077659,
+    "seen": 1795602133.6889021,
+    "ast_hash": "f3b25fa02b644e9d2058dbb4364aecf7",
     "semantic_hash": ""
   },
   "futrat_mobile/lib/providers/theme_provider.dart": {
@@ -432,9 +432,9 @@
     "semantic_hash": ""
   },
   "futrat_mobile/pubspec.yaml": {
-    "mtime": 1795469558.5237498,
-    "seen": 1795470157.218202,
-    "ast_hash": "4e6cf6a8d07d1b0d6815c7e8735b1a5d",
+    "mtime": 1795601849.3120718,
+    "seen": 1795602133.70094,
+    "ast_hash": "40da3d02c3bb05cf229933be0b934eca",
     "semantic_hash": ""
   },
   "futrat_mobile/web/index.html": {
@@ -768,9 +768,9 @@
     "semantic_hash": ""
   },
   "futrat_backend/app/match_sync.py": {
-    "mtime": 1792341453.7902343,
-    "seen": 1792342286.4076412,
-    "ast_hash": "53e630920bdb59c9b1e86ea2cadc7880",
+    "mtime": 1795601775.3366382,
+    "seen": 1795602133.6818852,
+    "ast_hash": "e3c11ef45ccab93fed0f36b913476d12",
     "semantic_hash": ""
   },
   "futrat_backend/app/seasons.py": {
@@ -798,9 +798,9 @@
     "semantic_hash": ""
   },
   "futrat_backend/app/goal_sync.py": {
-    "mtime": 1792341454.5589604,
-    "seen": 1792342286.4076412,
-    "ast_hash": "9fbc3fab24fe4d14a2ce9f3d1cf004f6",
+    "mtime": 1795602011.8142798,
+    "seen": 1795602133.6808863,
+    "ast_hash": "b41182bd67a7cbbe532dc00a96c2db79",
     "semantic_hash": ""
   },
   "futrat_backend/app/national_standings.py": {
@@ -1164,9 +1164,9 @@
     "semantic_hash": ""
   },
   "futrat_mobile/test/live_updates_test.dart": {
-    "mtime": 1792341800.0064375,
-    "seen": 1792342286.4076412,
-    "ast_hash": "02be65477bc1ed48d0470cfcd55d9b69",
+    "mtime": 1795600716.4661233,
+    "seen": 1795600884.9966938,
+    "ast_hash": "8953951ef29185485c333e85b42e7dc5",
     "semantic_hash": ""
   },
   "futrat_backend/docs/live-feed.md": {
@@ -1188,15 +1188,15 @@
     "semantic_hash": ""
   },
   "futrat_mobile/lib/widgets/football_logo.dart": {
-    "mtime": 1792497131.5592568,
-    "seen": 1792497242.7815986,
-    "ast_hash": "686a8d8308f3c31983a1a0f8e520a061",
+    "mtime": 1795600814.0110974,
+    "seen": 1795600884.9935467,
+    "ast_hash": "c0f7c466be04e5be6c60cdc7095cfa8f",
     "semantic_hash": ""
   },
   "futrat_mobile/test/football_logo_test.dart": {
-    "mtime": 1792497060.5281472,
-    "seen": 1792497242.7815986,
-    "ast_hash": "22a241c6bc4312dc47e828c0c8616df4",
+    "mtime": 1795600838.1214,
+    "seen": 1795600884.9956667,
+    "ast_hash": "ce9581e77bd19e654d21855eb070c895",
     "semantic_hash": ""
   },
   "futrat_backend/docs/player-photos-plan.md": {
@@ -1320,9 +1320,9 @@
     "semantic_hash": ""
   },
   "futrat_mobile/test/auth_session_test.dart": {
-    "mtime": 1793134570.61019,
-    "seen": 1793134616.244194,
-    "ast_hash": "27eeb483fc7fd327f0c02d10f204a8f8",
+    "mtime": 1795600476.806414,
+    "seen": 1795600884.9956667,
+    "ast_hash": "bb3faea60f676ff05dac76325f5f490f",
     "semantic_hash": ""
   },
   "futrat_backend/tests/test_sessions.py": {
@@ -1362,9 +1362,9 @@
     "semantic_hash": ""
   },
   "tasks/persistent-session-and-lineup.md": {
-    "mtime": 1795470284.4714463,
-    "seen": 1795470285.0502167,
-    "ast_hash": "0f6691378b1a8f7c3fdae6367323129c",
+    "mtime": 1795600948.826271,
+    "seen": 1795601448.0250063,
+    "ast_hash": "cee342c3647ea64933a3b6d18237f562",
     "semantic_hash": ""
   },
   ".codex-attachments/6165bbb1-760b-4bc9-b1d0-132b2e7d690e/46111c9a-8cee-4ce2-bb40-d518750bb351/1000054269.jpg": {
@@ -1383,6 +1383,60 @@
     "mtime": 1795468543.210073,
     "seen": 1795470157.2186732,
     "ast_hash": "93af6016005ea973c64564bb6ccdc887",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/core/badge_cache.dart": {
+    "mtime": 1795601492.0660505,
+    "seen": 1795602133.6879022,
+    "ast_hash": "b19db0e424e2230f39cf233e666f6222",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/lib/core/public_data_cache.dart": {
+    "mtime": 1795600757.3772745,
+    "seen": 1795600884.9886122,
+    "ast_hash": "bb92856806c3777bd89ab88942f69956",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/test/badge_cache_test.dart": {
+    "mtime": 1795601415.3285887,
+    "seen": 1795601448.0120044,
+    "ast_hash": "eb19e1f991eb2f4293c0bacd49fad58e",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/test/data_cache_provider_test.dart": {
+    "mtime": 1795601915.9002256,
+    "seen": 1795602133.6939533,
+    "ast_hash": "035e3e6952bd516166de32947e118b7e",
+    "semantic_hash": ""
+  },
+  "futrat_mobile/test/public_data_cache_test.dart": {
+    "mtime": 1795600476.8014133,
+    "seen": 1795600884.9967153,
+    "ast_hash": "574dabd96029a5384a417cf260f2c926",
+    "semantic_hash": ""
+  },
+  "tasks/daily-public-cache.md": {
+    "mtime": 1795602013.0450466,
+    "seen": 1795602133.70194,
+    "ast_hash": "71022c3726ba89f264091883ef818b39",
+    "semantic_hash": ""
+  },
+  "futrat_backend/app/team_badges.py": {
+    "mtime": 1795602011.2128885,
+    "seen": 1795602133.6828852,
+    "ast_hash": "148280585e097d6fbd3a0dc9ff6634a9",
+    "semantic_hash": ""
+  },
+  "futrat_backend/tests/test_team_badges.py": {
+    "mtime": 1795602087.0225513,
+    "seen": 1795602133.6858954,
+    "ast_hash": "681f597863b3ec9042e73a374ebb9689",
+    "semantic_hash": ""
+  },
+  "futrat_backend/deploy/CLUB_BADGES.md": {
+    "mtime": 1795602012.42123,
+    "seen": 1795602133.6979399,
+    "ast_hash": "beafcaae5d6ed77fb30d760f1cffc5fb",
     "semantic_hash": ""
   }
 }

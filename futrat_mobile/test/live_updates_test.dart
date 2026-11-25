@@ -88,6 +88,9 @@ void main() {
         fake.close(force: true);
       });
       await tester.runAsync(data.initData);
+      // A cached start now requests an immediate background score refresh.
+      // Complete it before measuring the subsequent 60-second poll.
+      await tester.runAsync(data.fetchLiveUpdates);
       data.setLiveUpdatesActive(false);
       data.setLiveUpdatesActive(true);
       await tester.pumpAndSettle();

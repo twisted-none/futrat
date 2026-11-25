@@ -84,6 +84,24 @@ void main() {
     expect(await storage.read(key: 'auth_token'), 'fake-token-1');
   });
 
+  test(
+    'local startup restores account without waiting for the server',
+    () async {
+      await auth.login('Player', 'secret');
+      auth.dispose();
+      auth = AuthProvider();
+      await auth.restoreCachedSession();
+      expect(auth.currentUser?.username, 'Player');
+      release = Completer<void>();
+      started = Completer<void>();
+      final checking = auth.checkAuth();
+      await started!.future;
+      expect(auth.isAuthenticated, isTrue);
+      release!.complete();
+      await checking;
+    },
+  );
+
   for (final failure in ['offline', '500', '503', '403', '429']) {
     test('cold start retains token and profile on $failure', () async {
       await auth.login('Player', 'secret');

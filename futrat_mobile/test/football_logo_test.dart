@@ -1,9 +1,11 @@
 import 'dart:typed_data';
+import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:futrat_mobile/core/app_theme.dart';
 import 'package:futrat_mobile/widgets/football_logo.dart';
+import 'package:futrat_mobile/core/badge_cache.dart';
 
 Uint8List pixels(List<List<int>> colors) =>
     Uint8List.fromList(colors.expand((c) => c).toList());
@@ -22,6 +24,59 @@ Future<MemoryImage> badge(Color color) async {
 }
 
 void main() {
+  testWidgets(
+    'permanent badge renders offline with the dark-theme contrast tile',
+    (tester) async {
+      late Directory root;
+      await tester.runAsync(() async {
+        root = await Directory.systemTemp.createTemp('futrat-badge-widget-');
+        final bytes = (await badge(const Color(0xFF271143))).bytes;
+        final online = BadgeCache(
+          directory: () async => root,
+          download: (_) async => bytes,
+        );
+        expect(await online.get('https://fixture.test/dark.png'), isNotNull);
+        online.dispose();
+      });
+      final offline = BadgeCache(
+        directory: () async => root,
+        download: (_) async => throw StateError('offline'),
+      );
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData.dark(),
+            home: FootballLogo(
+              url: 'https://fixture.test/dark.png',
+              cache: offline,
+              size: 28,
+            ),
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pumpAndSettle();
+      expect(find.byType(Image), findsOneWidget);
+      expect(find.byIcon(Icons.shield_outlined), findsNothing);
+      final container = tester.widget<Container>(
+        find
+            .descendant(
+              of: find.byType(FootballLogo),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      expect(
+        (container.decoration as BoxDecoration).color,
+        FootballLogo.lightBackground,
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      offline.dispose();
+      await tester.runAsync(() => root.delete(recursive: true));
+    },
+  );
+
   test('transparent borders do not dilute a dark badge', () {
     expect(
       logoNeedsLightBackground(
