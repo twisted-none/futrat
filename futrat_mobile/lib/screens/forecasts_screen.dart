@@ -9,6 +9,9 @@ import '../models/all_models.dart';
 import '../providers/auth_provider.dart';
 import '../providers/data_provider.dart';
 import 'match_detail_screen.dart';
+import '../widgets/app_states.dart';
+import '../widgets/football_logo.dart';
+import '../widgets/match_summary.dart';
 
 DateTime moscowTime(DateTime date) =>
     date.toUtc().add(const Duration(hours: 3));
@@ -36,6 +39,13 @@ class _ForecastsScreenState extends State<ForecastsScreen>
   bool _loading = true, _busy = false, _historyMore = false;
   bool _favoritesOnly = false;
   String? _error;
+  final Map<int, String> _displayKeys = {};
+  String get _viewKey =>
+      '$_tab:${_tab == 0
+          ? _day
+          : _tab == 2
+          ? _month
+          : 'history'}';
   List<Map<String, dynamic>> _choices = [], _history = [], _ranks = [];
   Map<String, dynamic>? _myRank;
 
@@ -110,7 +120,7 @@ class _ForecastsScreenState extends State<ForecastsScreen>
     final generation = ++_generation;
     final signedIn = context.read<AuthProvider>().isAuthenticated;
     setState(() {
-      if (!keepList) _loading = true;
+      if (!keepList) _loading = _displayKeys[_tab] != _viewKey;
       _error = null;
     });
     try {
@@ -145,6 +155,7 @@ class _ForecastsScreenState extends State<ForecastsScreen>
           _myRank = results[1];
         });
       }
+      if (mounted && generation == _generation) _displayKeys[_tab] = _viewKey;
     } catch (error) {
       if (mounted && generation == _generation) {
         if (keepList) {
@@ -192,10 +203,11 @@ class _ForecastsScreenState extends State<ForecastsScreen>
         });
       }
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(_message(error))));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -265,29 +277,24 @@ class _ForecastsScreenState extends State<ForecastsScreen>
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Прогнозы'),
-          bottom: TabBar(
+          bottom: appTabs(
+            context,
+            const ['Матчи', 'Мои прогнозы', 'Рейтинг'],
             controller: _tabs,
+            fixedEqualWidth: false,
             onTap: (tab) {
               setState(() => _tab = tab);
               _load();
             },
-            tabs: const [
-              Tab(text: 'Матчи'),
-              Tab(text: 'Мои прогнозы'),
-              Tab(text: 'Рейтинг'),
-            ],
           ),
         ),
         body: Column(
           children: [
             if (_tab == 0)
               Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+                  padding: const EdgeInsets.all(12),
                   child: Column(
                     children: [
                       Row(
@@ -302,6 +309,7 @@ class _ForecastsScreenState extends State<ForecastsScreen>
                               onPressed: _pickDate,
                               child: Text(
                                 '${DateFormat('dd.MM.yyyy').format(DateTime.parse(_day))} · МСК',
+                                textAlign: TextAlign.center,
                               ),
                             ),
                           ),
@@ -312,28 +320,33 @@ class _ForecastsScreenState extends State<ForecastsScreen>
                           ),
                         ],
                       ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Wrap(
+                          spacing: 16,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
                               signedIn
                                   ? 'Выбрано $_used из 10'
-                                  : 'До 10 матчей на дату по МСК',
+                                  : 'Лимит: 10 матчей',
                             ),
-                          ),
-                          FilterChip(
-                            label: const Text('Избранное'),
-                            selected: _favoritesOnly,
-                            onSelected: (v) =>
-                                setState(() => _favoritesOnly = v),
-                          ),
-                        ],
+                            FilterChip(
+                              label: const Text('Избранное'),
+                              selected: _favoritesOnly,
+                              onSelected: (value) =>
+                                  setState(() => _favoritesOnly = value),
+                            ),
+                          ],
+                        ),
                       ),
-                      const Align(
+                      const SizedBox(height: 4),
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'П1 / Х / П2 · 90 минут · +10 за верный исход',
-                          style: TextStyle(fontSize: 12),
+                          '90 минут · +10 за верный исход',
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ),
                     ],
@@ -365,22 +378,24 @@ class _ForecastsScreenState extends State<ForecastsScreen>
                   },
                 ),
               ),
-            if (_tab == 2 && _myRank != null) _rankCard(_myRank!, mine: true),
+            if (_tab == 2 && !_loading && _error == null && _myRank != null)
+              _rankCard(_myRank!, mine: true),
+            if (_error != null && _displayKeys[_tab] == _viewKey)
+              UpdateNotice(message: _error!, onRetry: _load),
             Expanded(
               child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _error != null
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(_error!, textAlign: TextAlign.center),
-                          TextButton(
-                            onPressed: _load,
-                            child: const Text('Повторить'),
-                          ),
-                        ],
-                      ),
+                  ? AppSkeleton(
+                      label: _tab == 2
+                          ? 'Загрузка рейтинга'
+                          : 'Загрузка прогнозов',
+                    )
+                  : _error != null && _displayKeys[_tab] != _viewKey
+                  ? AppEmptyState(
+                      title: 'Не удалось получить данные',
+                      message: _error,
+                      icon: Icons.wifi_off_outlined,
+                      actionLabel: 'Повторить',
+                      onAction: _load,
                     )
                   : RefreshIndicator(
                       onRefresh: _load,
@@ -424,7 +439,8 @@ class _ForecastsScreenState extends State<ForecastsScreen>
     final choices = {for (final row in _choices) row['match_id'] as int: row};
     return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(12),
+      key: PageStorageKey('forecast-choices-$_day'),
+      padding: const EdgeInsets.all(16),
       itemCount: matches.length,
       itemBuilder: (context, index) {
         final match = matches[index], choice = choices[match.id];
@@ -441,24 +457,59 @@ class _ForecastsScreenState extends State<ForecastsScreen>
                   '${DateFormat('HH:mm').format(moscowTime(match.dateTime))} МСК · ${match.tournament.name}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    '${match.homeTeam.name} — ${match.awayTeam.name}',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
+                InkWell(
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => MatchDetailScreen(match: match),
                     ),
                   ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Column(
+                      children: [
+                        for (final team in [match.homeTeam, match.awayTeam])
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Row(
+                              children: [
+                                FootballLogo(url: team.logoUrl, size: 26),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    team.name,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
                 SegmentedButton<String>(
+                  expandedInsets: EdgeInsets.zero,
+                  style: const ButtonStyle(
+                    minimumSize: WidgetStatePropertyAll(Size(48, 48)),
+                  ),
                   segments: const [
-                    ButtonSegment(value: 'HOME', label: Text('П1')),
-                    ButtonSegment(value: 'DRAW', label: Text('Х')),
-                    ButtonSegment(value: 'AWAY', label: Text('П2')),
+                    ButtonSegment(
+                      value: 'HOME',
+                      label: Text('П1'),
+                      tooltip: 'Победа хозяев',
+                    ),
+                    ButtonSegment(
+                      value: 'DRAW',
+                      label: Text('Х'),
+                      tooltip: 'Ничья',
+                    ),
+                    ButtonSegment(
+                      value: 'AWAY',
+                      label: Text('П2'),
+                      tooltip: 'Победа гостей',
+                    ),
                   ],
                   selected: {if (selected != null) selected},
                   emptySelectionAllowed: true,
@@ -485,7 +536,15 @@ class _ForecastsScreenState extends State<ForecastsScreen>
   }
 
   Widget _myPredictions(bool signedIn) {
-    if (!signedIn) return _empty('Войдите, чтобы увидеть свои прогнозы');
+    if (!signedIn) {
+      return _empty(
+        'Войдите, чтобы увидеть свои прогнозы',
+        actionLabel: 'Войти / зарегистрироваться',
+        onAction: () async {
+          if (await openAuthScreen(context) && mounted) _load();
+        },
+      );
+    }
     if (_history.isEmpty) return _empty('Прогнозов пока нет');
     const labels = {
       'OPEN': 'Принят',
@@ -512,22 +571,40 @@ class _ForecastsScreenState extends State<ForecastsScreen>
               Map<String, dynamic>.from(row['match']),
             );
         return Card(
-          child: ListTile(
-            title: Text('${match.homeTeam.name} — ${match.awayTeam.name}'),
-            subtitle: Text(
-              '${row['day']} · ${labels[row['status']] ?? row['status']}',
-            ),
-            trailing: Text(
-              const {'HOME': 'П1', 'DRAW': 'Х', 'AWAY': 'П2'}[row['outcome']]!,
-            ),
-            onTap: () {
-              setState(() {
-                _day = moscowDay(match.dateTime);
-                _tab = 0;
-              });
-              _tabs.animateTo(0);
-              _load();
-            },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              MatchSummary(
+                match: match,
+                showTournament: true,
+                onTap: () {
+                  setState(() {
+                    _day = moscowDay(match.dateTime);
+                    _tab = 0;
+                  });
+                  _tabs.animateTo(0);
+                  _load();
+                },
+              ),
+              const Divider(height: 1, indent: 14, endIndent: 14),
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Wrap(
+                  spacing: 12,
+                  runSpacing: 6,
+                  children: [
+                    Text(
+                      'Ваш прогноз: ${const {'HOME': 'П1', 'DRAW': 'Х', 'AWAY': 'П2'}[row['outcome']]}',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    Text(
+                      '${row['day']} · ${labels[row['status']] ?? row['status']}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -535,16 +612,53 @@ class _ForecastsScreenState extends State<ForecastsScreen>
   }
 
   Widget _rankCard(Map<String, dynamic> row, {bool mine = false}) => Card(
-    child: ListTile(
-      leading: Text(
-        '#${row['rank']}',
-        style: Theme.of(context).textTheme.titleMedium,
+    margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+    child: Padding(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '#${row['rank']}',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Tooltip(
+                  message: row['username'],
+                  child: Text(
+                    mine ? 'Вы · ${row['username']}' : row['username'],
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 16,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                '${row['total_points']} баллов',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              Text(
+                '${row['correct']}/${row['settled']} · точность ${row['accuracy']}%',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ],
       ),
-      title: Text(mine ? 'Вы · ${row['username']}' : row['username']),
-      subtitle: Text(
-        '${row['correct']}/${row['settled']} · точность ${row['accuracy']}%',
-      ),
-      trailing: Text('${row['total_points']} баллов'),
     ),
   );
   Widget _ranking() => _ranks.isEmpty
@@ -561,13 +675,23 @@ class _ForecastsScreenState extends State<ForecastsScreen>
               ),
           ],
         );
-  Widget _empty(String text) => ListView(
-    physics: const AlwaysScrollableScrollPhysics(),
-    children: [
-      Padding(
-        padding: const EdgeInsets.all(32),
-        child: Text(text, textAlign: TextAlign.center),
-      ),
-    ],
-  );
+  Widget _empty(String text, {String? actionLabel, VoidCallback? onAction}) =>
+      LayoutBuilder(
+        builder: (context, constraints) => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: constraints.maxHeight,
+              child: AppEmptyState(
+                title: text,
+                icon: _tab == 2
+                    ? Icons.leaderboard_outlined
+                    : Icons.sports_soccer_outlined,
+                actionLabel: actionLabel,
+                onAction: onAction,
+              ),
+            ),
+          ],
+        ),
+      );
 }

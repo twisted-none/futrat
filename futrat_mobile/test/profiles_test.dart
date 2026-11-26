@@ -111,7 +111,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.textContaining('Голы: —'), findsOneWidget);
-    expect(find.text('7.5 · 2 голосов'), findsOneWidget);
+    expect(find.text('7.5 · Оценок: 2'), findsOneWidget);
     expect(find.textContaining('Источник'), findsNothing);
     expect(find.textContaining('Futrat'), findsNothing);
     expect(find.textContaining('GOAL'), findsNothing);

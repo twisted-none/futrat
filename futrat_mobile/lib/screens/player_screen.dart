@@ -6,6 +6,8 @@ import '../core/active_season.dart';
 import '../models/all_models.dart';
 import '../providers/data_provider.dart';
 import '../widgets/match_tile.dart';
+import '../widgets/match_summary.dart';
+import '../widgets/app_states.dart';
 
 class PlayerScreen extends StatefulWidget {
   final int playerId;
@@ -35,7 +37,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Future<void> _load() async {
     final generation = ++_generation;
     setState(() {
-      _loading = true;
+      _loading = _player == null;
       _error = null;
     });
     try {
@@ -120,47 +122,66 @@ class _PlayerScreenState extends State<PlayerScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(
-              child: TextButton(
-                onPressed: _load,
-                child: Text('$_error · Повторить'),
-              ),
+          ? const AppSkeleton(
+              layout: LoadingLayout.profile,
+              label: 'Загрузка профиля игрока',
+            )
+          : _error != null && _player == null
+          ? AppEmptyState(
+              title: _error!,
+              icon: Icons.wifi_off_outlined,
+              actionLabel: 'Повторить',
+              onAction: _load,
             )
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView(
+                key: PageStorageKey('player-${widget.playerId}-$_kind'),
                 padding: const EdgeInsets.all(12),
                 children: [
+                  if (_error != null)
+                    UpdateNotice(message: _error!, onRetry: _load),
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Center(
-                            child: PlayerPhoto(
-                              url: _player?['photo_url'],
-                              size: 82,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(seasonLabel(_calendar)),
-                          const SizedBox(height: 12),
-                          SegmentedButton<String>(
-                            segments: const [
-                              ButtonSegment(value: 'all', label: Text('Все')),
-                              ButtonSegment(value: 'club', label: Text('Клуб')),
-                              ButtonSegment(
-                                value: 'national',
-                                label: Text('Сборная'),
+                          Row(
+                            children: [
+                              PlayerPhoto(url: _player?['photo_url'], size: 48),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  seasonLabel(_calendar),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
                               ),
                             ],
-                            selected: {_kind},
-                            onSelectionChanged: (values) {
-                              setState(() => _kind = values.first);
-                              _load();
-                            },
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              for (final option in const [
+                                ('all', 'Все'),
+                                ('club', 'Клуб'),
+                                ('national', 'Сборная'),
+                              ])
+                                ChoiceChip(
+                                  label: Text(option.$2),
+                                  selected: _kind == option.$1,
+                                  onSelected: (selected) {
+                                    if (selected) {
+                                      setState(() => _kind = option.$1);
+                                      _load();
+                                    }
+                                  },
+                                ),
+                            ],
                           ),
                         ],
                       ),
@@ -187,32 +208,44 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       Map<String, dynamic>.from(row['match']),
                     );
                     return Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            PlayerPhoto(url: row['photo_url'], size: 42),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  MatchTile(match: match),
-                                  Text(
-                                    'Голы: ${row['goals'] ?? '—'} · Передачи: ${row['assists'] ?? '—'} · Минуты: ${row['minutes'] ?? '—'}',
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(14),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                PlayerPhoto(url: row['photo_url'], size: 36),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Голы: ${row['goals'] ?? '—'} · Передачи: ${row['assists'] ?? '—'} · Минуты: ${row['minutes'] ?? '—'}',
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${row['user_rating'] ?? '—'} · Оценок: ${row['rating_count'] ?? 0}',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall,
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    "${row['user_rating'] ?? '—'} · ${row['rating_count'] ?? 0} голосов",
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                          const Divider(height: 1, indent: 14, endIndent: 14),
+                          MatchSummary(
+                            match: match,
+                            linkTeams: true,
+                            showTournament: true,
+                          ),
+                        ],
                       ),
                     );
                   }),

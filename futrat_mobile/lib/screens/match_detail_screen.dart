@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
+import 'package:intl/intl.dart';
 import '../models/all_models.dart';
 import '../widgets/lineup_view.dart';
+import '../widgets/app_states.dart';
+import '../widgets/match_summary.dart';
 import '../widgets/team_link.dart';
 import '../widgets/football_logo.dart';
 import '../core/app_theme.dart';
@@ -22,11 +25,14 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
   late MatchModel _currentMatch;
   bool _isLoadingDetails = true;
   Timer? _liveTimer;
+  String? _detailsError;
+  bool _detailsBusy = false;
 
   @override
   void initState() {
     super.initState();
     _currentMatch = widget.match;
+    _isLoadingDetails = !_hasDetails;
     _loadDeepStats();
 
     _liveTimer = Timer.periodic(const Duration(seconds: 60), (_) {
@@ -42,22 +48,44 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
     super.dispose();
   }
 
+  bool get _hasDetails =>
+      _currentMatch.lineups.isNotEmpty ||
+      _currentMatch.events.isNotEmpty ||
+      _currentMatch.shotsHome > 0 ||
+      _currentMatch.shotsAway > 0;
+
   Future<void> _loadDeepStats() async {
-    if (_currentMatch.status == "CANCELLED") {
+    if (_detailsBusy) return;
+    if (_currentMatch.status == 'CANCELLED') {
       if (mounted) setState(() => _isLoadingDetails = false);
       return;
     }
-    final detailedMatch = await Provider.of<DataProvider>(
-      context,
-      listen: false,
-    ).getMatchDetails(_currentMatch.id);
-    if (detailedMatch != null && mounted) {
+    _detailsBusy = true;
+    if (!_hasDetails && !_isLoadingDetails)
       setState(() {
-        _currentMatch = detailedMatch;
+        _isLoadingDetails = true;
+        _detailsError = null;
+      });
+    try {
+      final detailed = await context.read<DataProvider>().getMatchDetails(
+        _currentMatch.id,
+      );
+      if (!mounted) return;
+      setState(() {
+        if (detailed != null) _currentMatch = detailed;
+        _detailsError = detailed == null
+            ? 'Не удалось обновить состав и статистику'
+            : null;
         _isLoadingDetails = false;
       });
-    } else if (mounted) {
-      setState(() => _isLoadingDetails = false);
+    } catch (_) {
+      if (mounted)
+        setState(() {
+          _isLoadingDetails = false;
+          _detailsError = 'Не удалось обновить состав и статистику';
+        });
+    } finally {
+      _detailsBusy = false;
     }
   }
 
@@ -178,8 +206,8 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
             children: [
               Row(
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, color: theme.textColor),
+                  BackButton(
+                    color: theme.textColor,
                     onPressed: () => Navigator.pop(context),
                   ),
                   Expanded(
@@ -201,7 +229,10 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: theme.panel(),
-                padding: const EdgeInsets.only(top: 10, bottom: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 12,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -237,25 +268,33 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
                               ),
                             ),
                             child: Text(
-                              _currentMatch.needsStatusCheck
-                                  ? 'СТАТУС УТОЧНЯЕТСЯ'
-                                  : _currentMatch.status == "DELAYED"
-                                  ? "ОТЛОЖЕН"
-                                  : isLive
-                                  ? _currentMatch.liveLabel
-                                  : _currentMatch.status,
+                              matchStatusLabel(_currentMatch),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: isLive
-                                    ? Colors.redAccent
+                                    ? AppTheme.liveColor(context)
                                     : (_currentMatch.status == 'DELAYED'
                                           ? Colors.orange
                                           : theme.accentColor),
                                 fontWeight: FontWeight.bold,
-                                fontSize: 10,
+                                fontSize: 12,
                               ),
                             ),
                           ),
+                          if (!isLive)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                DateFormat(
+                                  'dd.MM · HH:mm',
+                                ).format(_currentMatch.dateTime.toLocal()),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: theme.dimTextColor,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -263,10 +302,19 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
                   ],
                 ),
               ),
+              if (_detailsError != null && _hasDetails)
+                UpdateNotice(message: _detailsError!, onRetry: _loadDeepStats),
               if (_isLoadingDetails)
+                const Expanded(
+                  child: AppSkeleton(label: 'Загрузка состава и статистики'),
+                )
+              else if (_detailsError != null && !_hasDetails)
                 Expanded(
-                  child: Center(
-                    child: CircularProgressIndicator(color: theme.accentColor),
+                  child: AppEmptyState(
+                    title: _detailsError!,
+                    icon: Icons.wifi_off_outlined,
+                    actionLabel: 'Повторить',
+                    onAction: _loadDeepStats,
                   ),
                 )
               else
@@ -275,16 +323,11 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
                     length: 3,
                     child: Column(
                       children: [
-                        TabBar(
-                          indicatorColor: theme.accentColor,
-                          labelColor: theme.accentColor,
-                          unselectedLabelColor: theme.dimTextColor,
-                          tabs: const [
-                            Tab(text: "Составы"),
-                            Tab(text: "Статистика"),
-                            Tab(text: "Хронология"),
-                          ],
-                        ),
+                        appTabs(context, const [
+                          'Составы',
+                          'Статистика',
+                          'Хронология',
+                        ], fixedEqualWidth: false),
                         Expanded(
                           child: TabBarView(
                             children: [
@@ -323,11 +366,10 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
         _currentMatch.shotsAway > 0 ||
         _currentMatch.cornersHome > 0;
     if (!hasStats)
-      return Center(
-        child: Text(
-          "Статистика недоступна",
-          style: TextStyle(color: theme.dimTextColor),
-        ),
+      return const AppEmptyState(
+        title: 'Статистика недоступна',
+        message: 'Показатели появятся, когда источник опубликует данные.',
+        icon: Icons.bar_chart,
       );
 
     return ListView(
@@ -445,12 +487,15 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
                   color: th.textColor,
                 ),
               ),
-              Text(
-                t,
-                style: TextStyle(
-                  color: th.dimTextColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  t,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: th.dimTextColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Text(
@@ -487,11 +532,10 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
 
   Widget _buildTimeline(AppCustomTheme theme, List<MatchEvent> events) {
     if (events.isEmpty)
-      return Center(
-        child: Text(
-          "События не зафиксированы",
-          style: TextStyle(color: theme.dimTextColor),
-        ),
+      return const AppEmptyState(
+        title: 'События не зафиксированы',
+        message: 'Здесь появятся голы, карточки и замены.',
+        icon: Icons.timeline,
       );
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -687,50 +731,56 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
     DataProvider data,
     AppCustomTheme currentTheme,
   ) {
-    final isFav = data.isTeamFavorite(team.id);
+    final favorite = data.isTeamFavorite(team.id);
     return Expanded(
       child: Column(
         children: [
-          GestureDetector(
-            onTap: () => runAuthenticatedAction(
-              context,
-              action: 'добавить команду в избранное',
-              onAuthenticated: (resumed) async {
-                if (resumed && data.isTeamFavorite(team.id)) return;
-                await data.toggleTeamFavorite(team.id);
-              },
-            ),
-            child: Icon(
-              isFav ? Icons.star : Icons.star_border,
-              color: isFav ? Colors.amber : currentTheme.dimTextColor,
-              size: 24,
-            ),
-          ),
-          const SizedBox(height: 10),
           TeamLink(
             team: team,
             child: Container(
               key: ValueKey('match-team-block-${team.id}'),
               width: double.infinity,
               margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-              decoration: currentTheme.panel(radius: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+              decoration: currentTheme.panel(radius: 10),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  FootballLogo(url: team.logoUrl, size: 60),
-                  const SizedBox(height: 10),
-                  Text(
-                    tr(team.name),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                      color: currentTheme.textColor,
+                  FootballLogo(url: team.logoUrl, size: 40),
+                  const SizedBox(height: 8),
+                  Tooltip(
+                    message: tr(team.name),
+                    child: Text(
+                      tr(team.name),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: currentTheme.textColor,
+                      ),
                     ),
                   ),
                 ],
               ),
+            ),
+          ),
+          IconButton(
+            tooltip: favorite ? 'Убрать из избранного' : 'В избранное',
+            icon: Icon(
+              favorite ? Icons.star : Icons.star_border,
+              color: favorite
+                  ? currentTheme.accentColor
+                  : currentTheme.dimTextColor,
+            ),
+            onPressed: () => runAuthenticatedAction(
+              context,
+              action: 'добавить команду в избранное',
+              onAuthenticated: (resumed) async {
+                if (resumed && data.isTeamFavorite(team.id)) return;
+                await data.toggleTeamFavorite(team.id);
+              },
             ),
           ),
         ],

@@ -6,6 +6,8 @@ import '../core/active_season.dart';
 import '../models/all_models.dart';
 import '../providers/data_provider.dart';
 import '../widgets/match_tile.dart';
+import '../widgets/app_states.dart';
+import '../widgets/football_logo.dart';
 
 class TeamScreen extends StatefulWidget {
   final int teamId;
@@ -22,7 +24,7 @@ class _TeamScreenState extends State<TeamScreen> {
   final Key _center = const ValueKey('latest-game');
   bool _loading = true, _morePast = false, _moreFuture = false, _busy = false;
   bool _calendar = false;
-  String? _error, _name;
+  String? _error, _name, _logoUrl;
   final int _season = activeSeason;
   MatchModel? _anchor;
   List<MatchModel> _past = [], _future = [];
@@ -45,7 +47,7 @@ class _TeamScreenState extends State<TeamScreen> {
   Future<void> _load() async {
     final generation = ++_generation;
     setState(() {
-      _loading = true;
+      _loading = _anchor == null;
       _error = null;
     });
     try {
@@ -53,6 +55,7 @@ class _TeamScreenState extends State<TeamScreen> {
       if (!mounted || generation != _generation) return;
       setState(() {
         _name = data['team']['name'];
+        _logoUrl = data['team']['logo_url'];
         _calendar = data['calendar_season'] ?? false;
         _anchor = data['anchor'] == null
             ? null
@@ -133,26 +136,49 @@ class _TeamScreenState extends State<TeamScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: Row(
               children: [
-                Expanded(child: Text(seasonLabel(_calendar))),
-                const Text('Все турниры'),
+                FootballLogo(url: _logoUrl, size: 40),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Wrap(
+                    spacing: 16,
+                    runSpacing: 4,
+                    children: [
+                      Text(seasonLabel(_calendar)),
+                      Text(
+                        'Все турниры',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
+          if (_error != null && _anchor != null)
+            UpdateNotice(message: _error!, onRetry: _load),
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                ? Center(
-                    child: TextButton(
-                      onPressed: _load,
-                      child: Text('$_error · Повторить'),
-                    ),
+                ? const AppSkeleton(
+                    layout: LoadingLayout.profile,
+                    label: 'Загрузка профиля команды',
+                  )
+                : _error != null && _anchor == null
+                ? AppEmptyState(
+                    title: _error!,
+                    icon: Icons.wifi_off_outlined,
+                    actionLabel: 'Повторить',
+                    onAction: _load,
                   )
                 : _anchor == null
-                ? const Center(child: Text('Нет матчей в этом сезоне'))
+                ? const AppEmptyState(
+                    title: 'Нет матчей в этом сезоне',
+                    message: 'Расписание появится после публикации игр.',
+                  )
                 : RefreshIndicator(
                     onRefresh: _load,
                     child: CustomScrollView(

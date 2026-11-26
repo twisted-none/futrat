@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../core/auth_gate.dart';
-import '../core/translator.dart';
 import '../models/all_models.dart';
 import '../providers/data_provider.dart';
-import '../screens/match_detail_screen.dart';
 import 'football_logo.dart';
+import 'match_summary.dart';
+import 'app_states.dart';
 
 class LeagueMatches {
   const LeagueMatches(this.tournament, this.matches);
@@ -62,8 +60,13 @@ class GroupedMatchesList extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final favorites = data.favoriteTournaments.map((t) => t.id).toSet();
     final groups = groupMatchesByLeague(matches, data.tournaments, favorites);
-    if (groups.isEmpty) return const Center(child: Text('Нет матчей'));
+    if (groups.isEmpty)
+      return const AppEmptyState(
+        title: 'Нет матчей',
+        message: 'Когда появятся игры, они будут сгруппированы по турнирам.',
+      );
     return ListView.builder(
+      key: PageStorageKey('match-feed-$feedId'),
       padding: const EdgeInsets.all(12),
       itemCount: groups.length,
       itemBuilder: (context, index) {
@@ -126,143 +129,6 @@ class _MatchRow extends StatelessWidget {
   const _MatchRow({required this.match});
   final MatchModel match;
   @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final live = match.isLive;
-    final status = live
-        ? 'LIVE'
-        : match.needsStatusCheck
-        ? 'Уточняется'
-        : const {
-            'FINISHED': 'Завершён',
-            'CANCELLED': 'Отмена',
-            'DELAYED': 'Отложен',
-            'POSTPONED': 'Перенос',
-            'ABANDONED': 'Прерван',
-            'SUSPENDED': 'Приостановлен',
-          }[match.status];
-    return InkWell(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => MatchDetailScreen(match: match),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 58,
-              child: Column(
-                children: [
-                  Text(
-                    live
-                        ? match.liveLabel
-                        : DateFormat('HH:mm').format(match.dateTime.toLocal()),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  if (status != null && !live)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        status,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: live ? colors.error : colors.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                children: [
-                  _team(context, match.homeTeam, match.scoreHome),
-                  _team(context, match.awayTeam, match.scoreAway),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _team(BuildContext context, Team team, int? score) {
-    final data = context.watch<DataProvider>();
-    final favorite = data.isTeamFavorite(team.id);
-    final showScore = !const {
-      'SCHEDULED',
-      'DELAYED',
-      'POSTPONED',
-      'CANCELLED',
-    }.contains(match.status);
-    return Row(
-      children: [
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Row(
-              children: [
-                FootballLogo(url: team.logoUrl, size: 22),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    tr(team.name),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SizedBox(
-          width: 28,
-          key: team.id == match.homeTeam.id
-              ? ValueKey('match-score-${match.id}')
-              : null,
-          child: Text(
-            showScore ? '${score ?? '—'}' : '—',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontFeatures: [FontFeature.tabularFigures()],
-            ),
-          ),
-        ),
-        IconButton(
-          key: ValueKey('favorite-team-${match.id}-${team.id}'),
-          tooltip: favorite
-              ? 'Убрать команду из избранного'
-              : 'Добавить команду в избранное',
-          iconSize: 18,
-          icon: Icon(
-            favorite ? Icons.star : Icons.star_border,
-            color: favorite
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          onPressed: () => runAuthenticatedAction(
-            context,
-            action: 'добавить команду в избранное',
-            onAuthenticated: (resumed) async {
-              if (resumed && data.isTeamFavorite(team.id)) return;
-              await data.toggleTeamFavorite(team.id);
-            },
-          ),
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) =>
+      MatchSummary(match: match, showFavorites: true);
 }

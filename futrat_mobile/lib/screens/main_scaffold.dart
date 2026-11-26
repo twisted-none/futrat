@@ -5,7 +5,8 @@ import '../providers/theme_provider.dart';
 
 class MainScaffold extends StatelessWidget {
   final Widget child;
-  const MainScaffold({super.key, required this.child});
+  final StatefulNavigationShell? navigationShell;
+  const MainScaffold({super.key, required this.child, this.navigationShell});
 
   @override
   Widget build(BuildContext context) {
@@ -20,23 +21,33 @@ class MainScaffold extends StatelessWidget {
             top: BorderSide(color: themeProvider.currentTheme.cardBorder),
           ),
         ),
-        child: BottomNavigationBar(
-          currentIndex: _calculateSelectedIndex(context),
-          onTap: (index) => _onItemTapped(index, context),
-          selectedItemColor: themeProvider.currentTheme.accentColor,
-          unselectedItemColor: themeProvider.currentTheme.dimTextColor,
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
+        child: NavigationBar(
+          selectedIndex:
+              navigationShell?.currentIndex ?? _calculateSelectedIndex(context),
+          onDestinationSelected: (index) => _onItemTapped(index, context),
+          backgroundColor: themeProvider.currentTheme.cardBg,
+          surfaceTintColor: Colors.transparent,
+          indicatorColor: Theme.of(context).colorScheme.primaryContainer,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          labelPadding: EdgeInsets.zero,
+          labelTextStyle: WidgetStatePropertyAll(
+            TextStyle(
+              fontSize: MediaQuery.sizeOf(context).width < 360 ? 11 : 12,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0,
+            ),
+          ),
+          destinations: const [
+            NavigationDestination(
               icon: Icon(Icons.sports_soccer),
               label: 'Матчи',
             ),
-            BottomNavigationBarItem(
+            NavigationDestination(
               icon: Icon(Icons.leaderboard),
               label: 'Прогнозы',
             ),
-            BottomNavigationBarItem(icon: Icon(Icons.star), label: 'Избранное'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Профиль'),
+            NavigationDestination(icon: Icon(Icons.star), label: 'Избранное'),
+            NavigationDestination(icon: Icon(Icons.person), label: 'Профиль'),
           ],
         ),
       ),
@@ -52,6 +63,13 @@ class MainScaffold extends StatelessWidget {
   }
 
   void _onItemTapped(int index, BuildContext context) {
+    if (navigationShell != null) {
+      navigationShell!.goBranch(
+        index,
+        initialLocation: index == navigationShell!.currentIndex,
+      );
+      return;
+    }
     switch (index) {
       case 0:
         context.go('/home');

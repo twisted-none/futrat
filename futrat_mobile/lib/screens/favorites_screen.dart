@@ -1,199 +1,176 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/data_provider.dart';
-import '../providers/theme_provider.dart';
-import '../core/app_theme.dart';
 import 'package:go_router/go_router.dart';
+import '../core/auth_gate.dart';
+import '../providers/auth_provider.dart';
+import '../providers/data_provider.dart';
+import '../widgets/app_states.dart';
+import '../widgets/football_logo.dart';
+import '../widgets/match_tile.dart';
 import 'team_screen.dart';
 import 'player_screen.dart';
-import '../widgets/match_tile.dart';
-import '../widgets/football_logo.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
-
   @override
   State<FavoritesScreen> createState() => _FavoritesScreenState();
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
+  late final _tabs = TabController(length: 3, vsync: this);
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    Future.microtask(
-      () => Provider.of<DataProvider>(context, listen: false).fetchFavorites(),
-    );
+    Future.microtask(() {
+      if (mounted) context.read<DataProvider>().fetchFavorites();
+    });
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabs.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final data = Provider.of<DataProvider>(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final currentTheme = themeProvider.currentTheme;
-
-    return Container(
-      decoration: currentTheme.background,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: const Text("Избранное"),
-          bottom: TabBar(
-            controller: _tabController,
-            indicatorColor: currentTheme.accentColor,
-            labelColor: currentTheme.accentColor,
-            indicatorWeight: 3,
-            tabs: const [
-              Tab(text: "Клубы", icon: Icon(Icons.shield_outlined)),
-              Tab(text: "Лиги", icon: Icon(Icons.emoji_events_outlined)),
-              Tab(text: "Игроки", icon: Icon(Icons.person_outline)),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildTeamsList(data, currentTheme),
-            _buildTournamentsList(data, currentTheme),
-            _buildPlayersList(data, currentTheme),
-          ],
+    final data = context.watch<DataProvider>();
+    final signedIn = context.watch<AuthProvider>().isAuthenticated;
+    Widget empty(String title) => data.favoritesLoading
+        ? const AppSkeleton()
+        : AppEmptyState(
+            title: data.favoritesError ?? title,
+            message: data.favoritesError != null
+                ? 'Проверьте подключение и попробуйте снова.'
+                : signedIn
+                ? 'Нажмите на звезду рядом с командой, лигой или игроком, чтобы сохранить их здесь.'
+                : 'Избранное сохраняется в аккаунте. Матчи доступны и без входа.',
+            icon: data.favoritesError != null
+                ? Icons.wifi_off_outlined
+                : Icons.star_outline,
+            actionLabel: data.favoritesError != null
+                ? 'Повторить'
+                : signedIn
+                ? 'К матчам'
+                : 'Войти / зарегистрироваться',
+            onAction: data.favoritesError != null
+                ? data.fetchFavorites
+                : signedIn
+                ? () => context.go('/home')
+                : () => openAuthScreen(context),
+          );
+    Widget list(String kind, List<Widget> children) => ListView(
+      key: PageStorageKey('favorites-$kind'),
+      padding: const EdgeInsets.all(16),
+      children: children,
+    );
+    Widget entry({
+      required Widget leading,
+      required String name,
+      required VoidCallback open,
+      required VoidCallback remove,
+      String? subtitle,
+    }) => Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        contentPadding: const EdgeInsets.fromLTRB(14, 8, 4, 8),
+        leading: leading,
+        title: Text(name, maxLines: 2, overflow: TextOverflow.ellipsis),
+        subtitle: subtitle == null ? null : Text(subtitle),
+        onTap: open,
+        trailing: IconButton(
+          tooltip: 'Убрать из избранного',
+          icon: Icon(Icons.star, color: Theme.of(context).colorScheme.primary),
+          onPressed: remove,
         ),
       ),
     );
-  }
-
-  Widget _buildTeamsList(DataProvider data, AppCustomTheme theme) {
-    if (data.favoriteTeams.isEmpty)
-      return _buildEmptyState("Нет любимых команд", Icons.shield_outlined);
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: data.favoriteTeams.length,
-      itemBuilder: (ctx, i) {
-        final team = data.favoriteTeams[i];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: theme.panel(radius: 12),
-          child: ListTile(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => TeamScreen(teamId: team.id, name: team.name),
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
-            leading: _buildThemedLogo(team.logoUrl, theme),
-            title: Text(
-              team.name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              onPressed: () => data.toggleTeamFavorite(team.id, true),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTournamentsList(DataProvider data, AppCustomTheme theme) {
-    if (data.favoriteTournaments.isEmpty)
-      return _buildEmptyState("Нет любимых лиг", Icons.emoji_events_outlined);
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: data.favoriteTournaments.length,
-      itemBuilder: (ctx, i) {
-        final tournament = data.favoriteTournaments[i];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: theme.panel(radius: 12),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
-            leading: _buildThemedLogo(tournament.logoUrl, theme),
-            title: Text(
-              tournament.name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            onTap: () {
-              data.selectLeague(tournament);
-              context.go('/home');
-            },
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              onPressed: () => data.toggleTournamentFavorite(tournament.id),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildPlayersList(DataProvider data, AppCustomTheme theme) {
-    if (data.favoritePlayers.isEmpty)
-      return _buildEmptyState("Нет любимых игроков", Icons.person_off_outlined);
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: data.favoritePlayers.length,
-      itemBuilder: (ctx, i) {
-        final player = data.favoritePlayers[i];
-        return Card(
-          child: ListTile(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => PlayerScreen(playerId: player.id),
-              ),
-            ),
-            leading: PlayerPhoto(url: player.photoUrl),
-            title: Text(
-              player.name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(
-              "Матчи за клуб и сборную",
-              style: TextStyle(
-                color: theme.accentColor,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            trailing: IconButton(
-              tooltip: 'Убрать из избранного',
-              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              onPressed: () => data.togglePlayerFavorite(player.id),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildThemedLogo(String? url, AppCustomTheme theme) {
-    return FootballLogo(url: url, size: 50, padding: 5, framed: true);
-  }
-
-  Widget _buildEmptyState(String text, IconData icon) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Избранное'),
+        bottom: appTabs(context, const [
+          'Клубы',
+          'Лиги',
+          'Игроки',
+        ], controller: _tabs),
+      ),
+      body: Column(
         children: [
-          Icon(icon, size: 60, color: Colors.grey.withOpacity(0.2)),
-          const SizedBox(height: 10),
-          Text(text, style: const TextStyle(color: Colors.grey)),
+          if (data.favoritesError != null &&
+              (data.favoriteTeams.isNotEmpty ||
+                  data.favoritePlayers.isNotEmpty ||
+                  data.favoriteTournaments.isNotEmpty))
+            UpdateNotice(
+              message: data.favoritesError!,
+              onRetry: data.fetchFavorites,
+            ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabs,
+              children: [
+                data.favoriteTeams.isEmpty
+                    ? empty('Пока нет любимых команд')
+                    : list('teams', [
+                        for (final team in data.favoriteTeams)
+                          entry(
+                            leading: FootballLogo(url: team.logoUrl, size: 36),
+                            name: team.name,
+                            open: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => TeamScreen(
+                                  teamId: team.id,
+                                  name: team.name,
+                                ),
+                              ),
+                            ),
+                            remove: () =>
+                                data.toggleTeamFavorite(team.id, true),
+                          ),
+                      ]),
+                data.favoriteTournaments.isEmpty
+                    ? empty('Пока нет любимых лиг')
+                    : list('leagues', [
+                        for (final league in data.favoriteTournaments)
+                          entry(
+                            leading: FootballLogo(
+                              url: league.logoUrl,
+                              size: 36,
+                            ),
+                            name: league.name,
+                            open: () {
+                              data.selectLeague(league);
+                              context.go('/home');
+                            },
+                            remove: () =>
+                                data.toggleTournamentFavorite(league.id),
+                          ),
+                      ]),
+                data.favoritePlayers.isEmpty
+                    ? empty('Пока нет любимых игроков')
+                    : list('players', [
+                        for (final player in data.favoritePlayers)
+                          entry(
+                            leading: PlayerPhoto(
+                              url: player.photoUrl,
+                              size: 36,
+                            ),
+                            name: player.name,
+                            subtitle: 'Матчи за клуб и сборную',
+                            open: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    PlayerScreen(playerId: player.id),
+                              ),
+                            ),
+                            remove: () => data.togglePlayerFavorite(player.id),
+                          ),
+                      ]),
+              ],
+            ),
+          ),
         ],
       ),
     );

@@ -44,6 +44,10 @@ class DataProvider extends ChangeNotifier {
   List<Player> _favoritePlayers = [];
   List<LeaderboardEntry> _leaderboard = [];
   List<StandingRow> _currentStandings = [];
+  String? _matchesError, _tournamentsError, _standingsError, _favoritesError;
+  bool _standingsLoading = false, _favoritesLoading = false;
+  int _standingsGeneration = 0;
+  int? _standingsTournamentId;
 
   bool _isLoading = false;
   int _selectedRound = 1;
@@ -88,6 +92,11 @@ class DataProvider extends ChangeNotifier {
   List<Player> get favoritePlayers => _favoritePlayers;
   List<StandingRow> get currentStandings => _currentStandings;
   bool get isLoading => _isLoading;
+  String? get loadError => _matchesError ?? _tournamentsError;
+  String? get standingsError => _standingsError;
+  bool get standingsLoading => _standingsLoading;
+  String? get favoritesError => _favoritesError;
+  bool get favoritesLoading => _favoritesLoading;
   int get selectedRound => _selectedRound;
 
   Future<void> initData() {
@@ -118,6 +127,7 @@ class DataProvider extends ChangeNotifier {
             _rawMatches = snapshot.matches;
             _rawTournaments = snapshot.tournaments;
             _matchesDay = _tournamentsDay = _loadedDay = day;
+            _matchesError = _tournamentsError = null;
           } catch (_) {
             // A valid JSON file may still have obsolete/invalid model fields.
           }
@@ -309,8 +319,9 @@ class DataProvider extends ChangeNotifier {
       _tournaments = rows.map(Tournament.fromJson).toList();
       _rawTournaments = rows;
       _tournamentsDay = day;
+      _tournamentsError = null;
     } catch (e) {
-      print("Error fetching tournaments: $e");
+      _tournamentsError = 'Не удалось обновить турниры';
     }
   }
 
@@ -325,9 +336,35 @@ class DataProvider extends ChangeNotifier {
       _allMatches = rows.map(MatchModel.fromJson).toList();
       _rawMatches = rows;
       _matchesDay = day;
+      _matchesError = null;
       if (!_disposed) _filterMatches(preserveRound: preserveRound);
     } catch (e) {
-      print("Error fetching matches: $e");
+      _matchesError = 'Не удалось загрузить матчи. Проверьте подключение';
+    }
+  }
+
+  Future<void> retryPublicData() async {
+    if (_disposed || _isLoading) return;
+    _isLoading = _allMatches.isEmpty;
+    notifyListeners();
+    try {
+      await Future.wait([
+        fetchTournaments(),
+        fetchMatches(preserveRound: true),
+      ]);
+      if (_disposed) return;
+      _selectedLeague ??= todayVirtual;
+      _filterMatches(preserveRound: true);
+      if (_matchesError == null && _tournamentsError == null) {
+        _loadedDay = moscowDay(_now());
+        await _savePublicData();
+        unawaited(_prefetchBadges());
+      }
+    } finally {
+      if (!_disposed) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -407,21 +444,35 @@ class DataProvider extends ChangeNotifier {
   }
 
   Future<void> fetchStandings(int tournamentId) async {
+    final generation = ++_standingsGeneration;
+    if (_standingsTournamentId != tournamentId) _currentStandings = [];
+    _standingsTournamentId = tournamentId;
+    _standingsLoading = true;
+    _standingsError = null;
+    if (!_disposed) notifyListeners();
     try {
       final res = await _client.dio.get(
         '/api/tournaments/$tournamentId/standings',
       );
+      if (_disposed || generation != _standingsGeneration) return;
       _currentStandings = (res.data as List)
           .map((e) => StandingRow.fromJson(e))
           .toList();
-      notifyListeners();
     } catch (e) {
-      _currentStandings = [];
-      notifyListeners();
+      if (_disposed || generation != _standingsGeneration) return;
+      _standingsError = 'Не удалось загрузить таблицу';
+    } finally {
+      if (!_disposed && generation == _standingsGeneration) {
+        _standingsLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<void> fetchFavorites() async {
+    _favoritesLoading = true;
+    _favoritesError = null;
+    if (!_disposed) notifyListeners();
     try {
       if (await _client.storage.read(key: 'auth_token') == null) {
         if (!_disposed) clearFavorites();
@@ -450,7 +501,12 @@ class DataProvider extends ChangeNotifier {
         ]),
       );
     } catch (e) {
-      print("Error fetching favorites: $e");
+      _favoritesError = 'Не удалось обновить избранное';
+    } finally {
+      if (!_disposed) {
+        _favoritesLoading = false;
+        notifyListeners();
+      }
     }
   }
 

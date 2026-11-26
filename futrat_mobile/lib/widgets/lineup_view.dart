@@ -6,6 +6,7 @@ import '../core/auth_gate.dart';
 import '../core/lineup_layout.dart';
 import '../screens/player_screen.dart';
 import 'match_tile.dart';
+import 'app_states.dart';
 
 enum _PlayerAction { statistics, rate }
 
@@ -105,7 +106,11 @@ class _LineupViewState extends State<LineupView> {
         MediaQuery.sizeOf(context).width < 380 ||
         MediaQuery.textScalerOf(context).scale(14) > 18;
     if (game.lineups.isEmpty) {
-      return const Center(child: Text('Составы недоступны у источника'));
+      return const AppEmptyState(
+        title: 'Составы пока недоступны',
+        message: 'Покажем игроков после публикации состава.',
+        icon: Icons.groups_outlined,
+      );
     }
     final team = _away ? game.awayTeam : game.homeTeam;
     final rows = game.lineups.where((p) => p.teamId == team.id).toList();
@@ -119,7 +124,8 @@ class _LineupViewState extends State<LineupView> {
         MediaQuery.textScalerOf(context).scale(12) <= 18 &&
         MediaQuery.sizeOf(context).width >= 300;
     return ListView(
-      padding: const EdgeInsets.all(12),
+      key: PageStorageKey('lineup-${widget.match.id}'),
+      padding: const EdgeInsets.all(16),
       children: [
         IntrinsicHeight(
           child: Row(
@@ -310,8 +316,8 @@ class _LineupViewState extends State<LineupView> {
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 10,
-              height: 1.15,
+              fontSize: 12,
+              height: 1.25,
             ),
           ),
           if ((player.goals ?? 0) > 0 || (player.assists ?? 0) > 0)

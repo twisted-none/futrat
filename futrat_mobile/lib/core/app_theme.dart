@@ -2,6 +2,16 @@ import 'package:flutter/material.dart';
 
 enum AppThemeType { light, dark }
 
+class AppLayout {
+  static const pageInset = 16.0;
+  static const cardInset = 14.0;
+  static const blockGap = 12.0;
+  static const sectionGap = 24.0;
+  static const cardRadius = 14.0;
+  static const controlRadius = 12.0;
+  static const tapTarget = 48.0;
+}
+
 enum AppAccent {
   red('Красный', Color(0xFFEF5350)),
   yellow('Жёлтый', Color(0xFFF6C945)),
@@ -40,7 +50,7 @@ class AppCustomTheme {
   Color get headerBg =>
       isDark ? const Color(0xFF25292F) : const Color(0xFFEBEEF2);
   BoxDecoration get background => BoxDecoration(color: scaffoldBg);
-  BoxDecoration panel({double radius = 16}) => BoxDecoration(
+  BoxDecoration panel({double radius = AppLayout.cardRadius}) => BoxDecoration(
     color: cardBg,
     border: Border.all(color: cardBorder),
     borderRadius: BorderRadius.circular(radius),
@@ -82,7 +92,7 @@ class AppTheme {
     final onPrimary = foregroundOn(primary);
     final shape = RoundedRectangleBorder(
       side: BorderSide(color: border),
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppLayout.cardRadius),
     );
     final scheme =
         ColorScheme.fromSeed(
@@ -133,6 +143,34 @@ class AppTheme {
       themeData: ThemeData(
         useMaterial3: true,
         fontFamily: 'IBMPlexSans',
+        textTheme: const TextTheme(
+          headlineSmall: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            height: 1.2,
+          ),
+          titleLarge: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            height: 1.25,
+          ),
+          titleMedium: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            height: 1.35,
+          ),
+          titleSmall: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            height: 1.35,
+          ),
+          bodyLarge: TextStyle(fontSize: 16, height: 1.4),
+          bodyMedium: TextStyle(fontSize: 14, height: 1.4),
+          bodySmall: TextStyle(fontSize: 12, height: 1.4),
+          labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          labelMedium: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+          labelSmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        ).apply(fontFamily: 'IBMPlexSans'),
         colorScheme: scheme,
         scaffoldBackgroundColor: bg,
         canvasColor: surface,
@@ -141,7 +179,7 @@ class AppTheme {
           backgroundColor: bg,
           foregroundColor: text,
           elevation: 0,
-          centerTitle: true,
+          centerTitle: false,
           surfaceTintColor: Colors.transparent,
         ),
         cardTheme: CardThemeData(
@@ -191,6 +229,14 @@ class AppTheme {
           ),
         ),
         tabBarTheme: TabBarThemeData(
+          labelStyle: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
           labelColor: primary,
           unselectedLabelColor: dim,
           indicatorColor: primary,
@@ -199,4 +245,12 @@ class AppTheme {
       ),
     );
   }
+
+  static const numberStyle = TextStyle(
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+  static Color liveColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFFFF8787)
+      : const Color(0xFFB92333);
 }

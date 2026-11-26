@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/data_provider.dart';
 import '../providers/theme_provider.dart';
 import '../core/app_theme.dart';
-import '../core/auth_gate.dart';
 import '../core/translator.dart';
 import '../models/all_models.dart';
 import 'match_detail_screen.dart';
@@ -13,6 +11,9 @@ import '../widgets/round_selector.dart';
 import '../widgets/team_link.dart';
 import '../widgets/football_logo.dart';
 import '../widgets/tournament_menu.dart';
+import '../widgets/app_states.dart';
+import '../widgets/standings_table.dart';
+import '../widgets/match_summary.dart';
 
 // --- КЛАСС ДЛЯ БЕЗОПАСНОГО ОТОБРАЖЕНИЯ И ПЕРЕРАСЧЕТА ТАБЛИЦЫ ---
 class UITableRow {
@@ -55,9 +56,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => Provider.of<DataProvider>(context, listen: false).initData(),
-    );
+    Future.microtask(() {
+      if (mounted) context.read<DataProvider>().initData();
+    });
   }
 
   int _getMaxRounds(String? leagueName, int teamsCount) {
@@ -344,56 +345,37 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: theme.textColor,
               ),
             ),
-            centerTitle: true,
+            centerTitle: false,
             iconTheme: IconThemeData(color: theme.textColor),
             bottom: isVirtual || isFriendly || isPending
                 ? null
-                : TabBar(
-                    isScrollable: tabs.length != 3,
-                    tabAlignment: tabs.length == 3
-                        ? TabAlignment.fill
-                        : TabAlignment.start,
-                    labelPadding: tabs.length == 3 ? EdgeInsets.zero : null,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicatorColor: theme.accentColor,
-                    labelColor: theme.accentColor,
-                    unselectedLabelColor: theme.dimTextColor,
-                    tabs: [
-                      for (var i = 0; i < tabs.length; i++)
-                        if (tabs.length == 3)
-                          Tab(
-                            key: ValueKey('league-tab-$i'),
-                            height:
-                                (MediaQuery.textScalerOf(context).scale(14) *
-                                            2.4 +
-                                        8)
-                                    .clamp(52, 160)
-                                    .toDouble(),
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                ),
-                                child: Text(
-                                  tabs[i].text ?? '',
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                ),
-                              ),
-                            ),
-                          )
-                        else
-                          tabs[i],
-                    ],
-                  ),
+                : appTabs(context, tabs.map((tab) => tab.text ?? '').toList()),
           ),
           drawer: const TournamentDrawer(),
-          body: data.isLoading
-              ? Center(
-                  child: CircularProgressIndicator(color: theme.accentColor),
+          body: data.isLoading && data.matches.isEmpty
+              ? AppSkeleton(
+                  layout: isVirtual || data.selectedLeague == null
+                      ? LoadingLayout.matches
+                      : LoadingLayout.table,
                 )
-              : TabBarView(children: views),
+              : data.loadError != null && data.allMatches.isEmpty
+              ? AppEmptyState(
+                  title: 'Не удалось загрузить матчи',
+                  message: data.loadError,
+                  icon: Icons.wifi_off_outlined,
+                  actionLabel: 'Повторить',
+                  onAction: data.retryPublicData,
+                )
+              : Column(
+                  children: [
+                    if (data.loadError != null)
+                      UpdateNotice(
+                        message: data.loadError!,
+                        onRetry: data.retryPublicData,
+                      ),
+                    Expanded(child: TabBarView(children: views)),
+                  ],
+                ),
         ),
       ),
     );
@@ -1310,7 +1292,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Container(
-      width: 110,
+      width:
+          170 * (MediaQuery.textScalerOf(context).scale(12) / 12).clamp(1, 2),
       margin: const EdgeInsets.symmetric(horizontal: 2),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1320,7 +1303,7 @@ class _HomeScreenState extends State<HomeScreen> {
             style: TextStyle(
               color: theme.accentColor,
               fontWeight: FontWeight.bold,
-              fontSize: 10,
+              fontSize: 13,
             ),
           ),
           const SizedBox(height: 10),
@@ -1328,7 +1311,9 @@ class _HomeScreenState extends State<HomeScreen> {
           if (toDisplay.isEmpty)
             Container(
               height: 60,
-              width: 110,
+              width:
+                  170 *
+                  (MediaQuery.textScalerOf(context).scale(12) / 12).clamp(1, 2),
               decoration: BoxDecoration(
                 color: theme.dividerColor,
                 borderRadius: BorderRadius.circular(8),
@@ -1358,7 +1343,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: theme.cardBg,
           borderRadius: BorderRadius.circular(10),
@@ -1376,35 +1361,38 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _bracketRow(Team t, int? s, int? agg, AppCustomTheme theme) {
-    return Row(
-      children: [
-        Expanded(
-          child: TeamLink(
-            team: t,
-            child: Row(
-              children: [
-                _buildLogo(t.logoUrl, theme, size: 16, padding: 2),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    tr(t.name),
-                    style: TextStyle(fontSize: 8, color: theme.textColor),
-                    overflow: TextOverflow.ellipsis,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 48),
+      child: Row(
+        children: [
+          Expanded(
+            child: TeamLink(
+              team: t,
+              child: Row(
+                children: [
+                  _buildLogo(t.logoUrl, theme, size: 24, padding: 0),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      tr(t.name),
+                      style: TextStyle(fontSize: 13, color: theme.textColor),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-        Text(
-          "${s ?? ''}${agg != null ? ' ($agg)' : ''}",
-          style: TextStyle(
-            fontSize: 9,
-            fontWeight: FontWeight.bold,
-            color: theme.textColor,
+          Text(
+            "${s ?? ''}${agg != null ? ' ($agg)' : ''}",
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: theme.textColor,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1523,11 +1511,23 @@ class _HomeScreenState extends State<HomeScreen> {
     int uefaMatchLimit = 8,
   }) {
     if (data.currentStandings.isEmpty) {
-      return Center(
-        child: Text(
-          "Загрузка таблицы...",
-          style: TextStyle(color: theme.dimTextColor),
-        ),
+      if (data.standingsLoading)
+        return const AppSkeleton(
+          layout: LoadingLayout.table,
+          label: 'Загрузка таблицы',
+        );
+      return AppEmptyState(
+        title: data.standingsError ?? 'Таблица пока недоступна',
+        message: data.standingsError == null
+            ? 'Показатели появятся после первых сыгранных матчей.'
+            : 'Проверьте подключение и повторите попытку.',
+        icon: data.standingsError == null
+            ? Icons.table_chart_outlined
+            : Icons.wifi_off_outlined,
+        actionLabel: data.standingsError == null ? null : 'Повторить',
+        onAction: data.standingsError == null
+            ? null
+            : () => data.fetchStandings(data.selectedLeague!.id),
       );
     }
 
@@ -1566,354 +1566,50 @@ class _HomeScreenState extends State<HomeScreen> {
       groups[g]!.add(row);
     }
 
-    if (isBigTable && groups.length == 1) {
-      return Container(
-        margin: const EdgeInsets.all(8),
-        decoration: theme.panel(),
-        clipBehavior: Clip.antiAlias,
-        child: LayoutBuilder(
-          builder: (context, constraints) =>
-              _buildDynamicTable(groups.values.first, theme, constraints),
-        ),
-      );
-    }
-
-    return SingleChildScrollView(
-      child: Column(
-        children: groups.entries.map((entry) {
-          return Card(
-            margin: const EdgeInsets.all(8),
+    return ListView(
+      key: PageStorageKey('standings-${data.selectedLeague?.id}'),
+      padding: const EdgeInsets.all(12),
+      children: [
+        if (data.standingsError != null)
+          UpdateNotice(
+            message: data.standingsError!,
+            onRetry: () => data.fetchStandings(data.selectedLeague!.id),
+          ),
+        for (final entry in groups.entries)
+          Card(
+            margin: const EdgeInsets.only(bottom: 12),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (groups.length > 1 || entry.key != "Таблица")
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(8),
-                    color: theme.dividerColor,
+                if (groups.length > 1 || entry.key != 'Таблица')
+                  Padding(
+                    padding: const EdgeInsets.all(14),
                     child: Text(
-                      entry.key.toUpperCase(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: theme.textColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                      entry.key,
+                      style: Theme.of(context).textTheme.titleSmall,
                     ),
                   ),
-                _buildStaticTable(entry.value, theme),
+                StandingsTable(
+                  rows: entry.value
+                      .map(
+                        (row) => StandingsEntry(
+                          rank: row.rank,
+                          team: row.team,
+                          played: row.played,
+                          won: row.won,
+                          draw: row.draw,
+                          lost: row.lost,
+                          goalsFor: row.goalsFor,
+                          goalsAgainst: row.goalsAgainst,
+                          points: row.points,
+                          form: row.form,
+                        ),
+                      )
+                      .toList(),
+                ),
               ],
             ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _tableTeamCell(
-    Team team,
-    AppCustomTheme theme, {
-    required double fontSize,
-    required double logoSize,
-  }) => Expanded(
-    child: TeamLink(
-      team: team,
-      child: Row(
-        children: [
-          _buildLogo(team.logoUrl, theme, size: logoSize, padding: 0),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              tr(team.name),
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: fontSize,
-                fontWeight: FontWeight.w500,
-                color: theme.textColor,
-              ),
-            ),
           ),
-        ],
-      ),
-    ),
-  );
-
-  Widget _buildDynamicTable(
-    List<UITableRow> rows,
-    AppCustomTheme theme,
-    BoxConstraints constraints,
-  ) {
-    double totalH = constraints.maxHeight;
-    double headerH = 30.0;
-
-    double exactRowH = (totalH - headerH) / rows.length;
-    if (exactRowH < 22.0) exactRowH = 22.0;
-
-    double fontSize = (exactRowH * 0.35).clamp(9.0, 14.0);
-    double logoSize = (exactRowH * 0.6).clamp(14.0, 26.0);
-    double numW = (fontSize * 1.8).clamp(16.0, 22.0);
-    double goalW = (fontSize * 2.2).clamp(20.0, 28.0);
-
-    Widget headerCell(String text, double w) => SizedBox(
-      width: w,
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: TextStyle(color: theme.dimTextColor, fontSize: 10),
-      ),
-    );
-    Widget cell(String text, double w, {bool bold = false, Color? color}) =>
-        SizedBox(
-          width: w,
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: color ?? theme.dimTextColor,
-              fontSize: fontSize,
-              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        );
-
-    return Column(
-      children: [
-        Container(
-          height: headerH,
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          color: theme.headerBg,
-          child: Row(
-            children: [
-              SizedBox(
-                width: 20,
-                child: Text(
-                  "#",
-                  style: TextStyle(color: theme.dimTextColor, fontSize: 10),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  " Команда",
-                  style: TextStyle(color: theme.dimTextColor, fontSize: 10),
-                ),
-              ),
-              headerCell("И", numW),
-              headerCell("В", numW),
-              headerCell("Н", numW),
-              headerCell("П", numW),
-              headerCell("ЗМ", goalW),
-              headerCell("ПМ", goalW),
-              headerCell("РМ", goalW),
-              headerCell("О", goalW),
-              SizedBox(
-                width: 60,
-                child: Text(
-                  "Форма",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: theme.dimTextColor, fontSize: 10),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            physics: const ClampingScrollPhysics(),
-            itemCount: rows.length,
-            itemBuilder: (context, index) {
-              final row = rows[index];
-              return Container(
-                height: exactRowH,
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  border: Border(bottom: BorderSide(color: theme.dividerColor)),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      child: Text(
-                        "${row.rank}",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: theme.textColor,
-                          fontSize: fontSize,
-                        ),
-                      ),
-                    ),
-                    _tableTeamCell(
-                      row.team,
-                      theme,
-                      fontSize: fontSize,
-                      logoSize: logoSize,
-                    ),
-                    cell("${row.played}", numW, color: theme.textColor),
-                    cell("${row.won}", numW, color: theme.textColor),
-                    cell("${row.draw}", numW, color: theme.textColor),
-                    cell("${row.lost}", numW, color: theme.textColor),
-                    cell("${row.goalsFor}", goalW, color: theme.textColor),
-                    cell("${row.goalsAgainst}", goalW, color: theme.textColor),
-                    cell(
-                      "${row.goalsFor - row.goalsAgainst}",
-                      goalW,
-                      color: theme.textColor,
-                    ),
-                    cell(
-                      "${row.points}",
-                      goalW,
-                      color: theme.accentColor,
-                      bold: true,
-                    ),
-                    SizedBox(
-                      width: 60,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: row.form.map((res) {
-                          Color c = Colors.grey;
-                          if (res == 'W') c = Colors.green;
-                          if (res == 'L') c = Colors.red;
-                          return Container(
-                            margin: const EdgeInsets.only(left: 2),
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: c,
-                              shape: BoxShape.circle,
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStaticTable(List<UITableRow> rows, AppCustomTheme theme) {
-    Widget cell(String text, double w, {bool bold = false, Color? color}) =>
-        SizedBox(
-          width: w,
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: color ?? theme.dimTextColor,
-              fontSize: 10,
-              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        );
-
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          color: theme.headerBg,
-          child: Row(
-            children: [
-              SizedBox(
-                width: 20,
-                child: Text(
-                  "#",
-                  style: TextStyle(color: theme.dimTextColor, fontSize: 10),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  " Команда",
-                  style: TextStyle(color: theme.dimTextColor, fontSize: 10),
-                ),
-              ),
-              cell("И", 16),
-              cell("В", 16),
-              cell("Н", 16),
-              cell("П", 16),
-              cell("ЗМ", 20),
-              cell("ПМ", 20),
-              cell("РМ", 20),
-              cell("О", 20),
-              SizedBox(
-                width: 60,
-                child: Text(
-                  "Форма",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: theme.dimTextColor, fontSize: 10),
-                ),
-              ),
-            ],
-          ),
-        ),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: rows.length,
-          itemBuilder: (context, index) {
-            final row = rows[index];
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: theme.dividerColor)),
-              ),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 20,
-                    child: Text(
-                      "${row.rank}",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: theme.textColor,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ),
-                  _tableTeamCell(row.team, theme, fontSize: 11, logoSize: 18),
-                  cell("${row.played}", 16, color: theme.textColor),
-                  cell("${row.won}", 16, color: theme.textColor),
-                  cell("${row.draw}", 16, color: theme.textColor),
-                  cell("${row.lost}", 16, color: theme.textColor),
-                  cell("${row.goalsFor}", 20, color: theme.textColor),
-                  cell("${row.goalsAgainst}", 20, color: theme.textColor),
-                  cell(
-                    "${row.goalsFor - row.goalsAgainst}",
-                    20,
-                    color: theme.textColor,
-                  ),
-                  cell(
-                    "${row.points}",
-                    20,
-                    color: theme.accentColor,
-                    bold: true,
-                  ),
-                  SizedBox(
-                    width: 60,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: row.form.map((res) {
-                        Color c = Colors.grey;
-                        if (res == 'W') c = Colors.green;
-                        if (res == 'L') c = Colors.red;
-                        return Container(
-                          margin: const EdgeInsets.only(left: 2),
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: c,
-                            shape: BoxShape.circle,
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
       ],
     );
   }
@@ -2009,176 +1705,9 @@ class _HomeScreenState extends State<HomeScreen> {
     AppCustomTheme theme, {
     String? subtitle,
   }) {
-    final isHomeFav = data.isTeamFavorite(match.homeTeam.id);
-    final isAwayFav = data.isTeamFavorite(match.awayTeam.id);
-
-    final isLive = match.isLive;
-    String displayStatus = match.status;
-
-    if (match.status == 'SCHEDULED') {
-      displayStatus = DateFormat('dd.MM.yyyy').format(match.dateTime.toLocal());
-    } else if (match.status == 'FINISHED') {
-      displayStatus = 'ЗАВЕРШЕН';
-    } else if (match.status == 'DELAYED') {
-      displayStatus = 'ОТЛОЖЕН';
-    } else if (match.needsStatusCheck) {
-      displayStatus = 'СТАТУС УТОЧНЯЕТСЯ';
-    } else if (isLive) {
-      displayStatus = match.liveLabel;
-    }
-
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => MatchDetailScreen(match: match)),
-      ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: theme.cardBg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.cardBorder),
-        ),
-        child: Column(
-          children: [
-            if (subtitle != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: theme.dimTextColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () => runAuthenticatedAction(
-                          context,
-                          action: 'добавить команду в избранное',
-                          onAuthenticated: (resumed) async {
-                            if (resumed &&
-                                data.isTeamFavorite(match.homeTeam.id))
-                              return;
-                            await data.toggleTeamFavorite(match.homeTeam.id);
-                          },
-                        ),
-                        child: Icon(
-                          isHomeFav ? Icons.star : Icons.star_border,
-                          color: isHomeFav ? Colors.amber : theme.dimTextColor,
-                          size: 18,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildLogo(match.homeTeam.logoUrl, theme, size: 45),
-                          const SizedBox(height: 8),
-                          Text(
-                            tr(match.homeTeam.name),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: theme.textColor,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  width: 85,
-                  child: Column(
-                    children: [
-                      Text(
-                        (match.status == 'SCHEDULED' ||
-                                match.status == 'DELAYED')
-                            ? DateFormat(
-                                'HH:mm',
-                              ).format(match.dateTime.toLocal())
-                            : "${match.scoreHome ?? 0} - ${match.scoreAway ?? 0}",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          color: theme.textColor,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        displayStatus,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: isLive
-                              ? Colors.redAccent
-                              : (match.status == 'DELAYED'
-                                    ? Colors.orange
-                                    : theme.accentColor),
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () => runAuthenticatedAction(
-                          context,
-                          action: 'добавить команду в избранное',
-                          onAuthenticated: (resumed) async {
-                            if (resumed &&
-                                data.isTeamFavorite(match.awayTeam.id))
-                              return;
-                            await data.toggleTeamFavorite(match.awayTeam.id);
-                          },
-                        ),
-                        child: Icon(
-                          isAwayFav ? Icons.star : Icons.star_border,
-                          color: isAwayFav ? Colors.amber : theme.dimTextColor,
-                          size: 18,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildLogo(match.awayTeam.logoUrl, theme, size: 45),
-                          const SizedBox(height: 8),
-                          Text(
-                            tr(match.awayTeam.name),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: theme.textColor,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: MatchSummary(match: match, caption: subtitle, showFavorites: true),
     );
   }
 

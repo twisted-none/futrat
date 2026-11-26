@@ -81,6 +81,54 @@ void main() {
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
 
   testWidgets(
+    'switching main sections preserves standings scroll and league tab',
+    (tester) async {
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<AuthProvider>(
+              create: (_) => FakeAuthProvider(),
+            ),
+            ChangeNotifierProvider<DataProvider>(
+              create: (_) => AppearanceDataProvider(),
+            ),
+            ChangeNotifierProvider<ThemeProvider>(
+              create: (_) => ThemeProvider(),
+            ),
+          ],
+          child: const FutratApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final table = find.byKey(const PageStorageKey('standings-1'));
+      await tester.drag(table, const Offset(0, -220));
+      await tester.pumpAndSettle();
+      double offset() => tester
+          .state<ScrollableState>(
+            find.descendant(of: table, matching: find.byType(Scrollable)).first,
+          )
+          .position
+          .pixels;
+      final previous = offset();
+      expect(previous, greaterThan(0));
+      await tester.tap(find.text('Профиль').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Матчи').last);
+      await tester.pumpAndSettle();
+      expect(offset(), closeTo(previous, .1));
+      await tester.tap(find.text('Туры'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Профиль').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Матчи').last);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('choose-round')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
     'populated standings and match cards fit both themes on a narrow screen',
     (tester) async {
       tester.view.physicalSize = const Size(320, 640);
@@ -164,7 +212,17 @@ void main() {
           tester.getCenter(find.byKey(ValueKey('accent-${accent.name}'))),
       ];
       expect(centers.map((point) => point.dy).toSet(), hasLength(1));
-      expect(centers.every((point) => point.dx > 0 && point.dx < 320), isTrue);
+      for (final accent in AppAccent.values) {
+        final size = tester.getSize(
+          find.byKey(ValueKey('accent-${accent.name}')),
+        );
+        expect(size.width, greaterThanOrEqualTo(48));
+        expect(size.height, greaterThanOrEqualTo(48));
+      }
+      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const ValueKey('accent-pink')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('accent-pink')));
       await tester.pumpAndSettle();
       expect(appearance.currentAccent, AppAccent.pink);
@@ -262,7 +320,7 @@ void main() {
     expect(find.text('Гость'), findsOneWidget);
     expect(find.text('Войти / зарегистрироваться'), findsOneWidget);
 
-    await tester.tap(find.text('Тема оформления'));
+    await tester.tap(find.text('Тема'));
     await tester.pumpAndSettle();
     expect(find.text('Выберите тему'), findsOneWidget);
     await tester.tap(find.text('Светлая'));

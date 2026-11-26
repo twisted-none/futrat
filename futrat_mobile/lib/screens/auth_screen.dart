@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
+import 'package:flutter/services.dart';
 import '../providers/auth_provider.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -24,6 +25,29 @@ class _AuthScreenState extends State<AuthScreen> {
     super.dispose();
   }
 
+  Future<void> _submit() async {
+    final auth = context.read<AuthProvider>();
+    if (auth.isLoading) return;
+    FocusScope.of(context).unfocus();
+    setState(() => _submitted = true);
+    if (!_formKey.currentState!.validate()) return;
+    if (_isRegister) {
+      await auth.register(
+        _usernameController.text.trim(),
+        _passwordController.text,
+      );
+    } else {
+      await auth.login(
+        _usernameController.text.trim(),
+        _passwordController.text,
+      );
+    }
+    if (mounted && auth.isAuthenticated) {
+      TextInput.finishAutofillContext();
+      Navigator.of(context).pop(true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
@@ -31,157 +55,143 @@ class _AuthScreenState extends State<AuthScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(title: Text(_isRegister ? 'Регистрация' : 'Вход')),
-      body: SafeArea(
-        child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 480),
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Form(
-                      key: _formKey,
-                      autovalidateMode: _submitted
-                          ? AutovalidateMode.onUserInteraction
-                          : AutovalidateMode.disabled,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'FUTRAT',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w900,
-                              color: colors.primary,
+      body: AutofillGroup(
+        child: SafeArea(
+          child: GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Form(
+                        key: _formKey,
+                        autovalidateMode: _submitted
+                            ? AutovalidateMode.onUserInteraction
+                            : AutovalidateMode.disabled,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'FUTRAT',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                color: colors.primary,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _isRegister
-                                ? 'Создание аккаунта'
-                                : 'Вход в систему',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: colors.onSurfaceVariant,
-                              fontSize: 18,
+                            const SizedBox(height: 8),
+                            Text(
+                              _isRegister
+                                  ? 'Создание аккаунта'
+                                  : 'Вход в систему',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: colors.onSurfaceVariant,
+                                fontSize: 18,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 28),
-                          _field(
-                            controller: _usernameController,
-                            label: 'Никнейм',
-                            icon: Icons.person_outline,
-                            validator: (value) {
-                              final name = (value ?? '').trim();
-                              if (name.isEmpty) return 'Введите никнейм';
-                              if (_isRegister && name.runes.length < 3) {
-                                return 'Никнейм должен содержать не менее 3 символов';
-                              }
-                              return null;
-                            },
-                            hint: _isRegister ? 'Не менее 3 символов' : null,
-                          ),
-                          const SizedBox(height: 16),
-                          _field(
-                            controller: _passwordController,
-                            label: 'Пароль',
-                            icon: Icons.lock_outline,
-                            password: true,
-                            validator: (value) {
-                              final password = value ?? '';
-                              if (password.isEmpty) return 'Введите пароль';
-                              if (_isRegister && password.runes.length < 6) {
-                                return 'Пароль должен содержать не менее 6 символов';
-                              }
-                              if (_isRegister && password.trim().isEmpty) {
-                                return 'Пароль не может состоять только из пробелов';
-                              }
-                              if (password.contains('\u0000')) {
-                                return 'Пароль содержит недопустимый символ';
-                              }
-                              if (_isRegister &&
-                                  utf8.encode(password).length > 72) {
-                                return 'Пароль слишком длинный';
-                              }
-                              return null;
-                            },
-                            hint: _isRegister ? 'Не менее 6 символов' : null,
-                          ),
-                          const SizedBox(height: 24),
-                          if (auth.errorMessage != null)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: Semantics(
-                                liveRegion: true,
-                                child: Text(
-                                  auth.errorMessage!,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: colors.error,
-                                    fontWeight: FontWeight.bold,
+                            const SizedBox(height: 20),
+                            _field(
+                              controller: _usernameController,
+                              label: 'Никнейм',
+                              icon: Icons.person_outline,
+                              validator: (value) {
+                                final name = (value ?? '').trim();
+                                if (name.isEmpty) return 'Введите никнейм';
+                                if (_isRegister && name.runes.length < 3) {
+                                  return 'Никнейм должен содержать не менее 3 символов';
+                                }
+                                return null;
+                              },
+                              hint: _isRegister ? 'Не менее 3 символов' : null,
+                            ),
+                            const SizedBox(height: 16),
+                            _field(
+                              controller: _passwordController,
+                              label: 'Пароль',
+                              icon: Icons.lock_outline,
+                              password: true,
+                              validator: (value) {
+                                final password = value ?? '';
+                                if (password.isEmpty) return 'Введите пароль';
+                                if (_isRegister && password.runes.length < 6) {
+                                  return 'Пароль должен содержать не менее 6 символов';
+                                }
+                                if (_isRegister && password.trim().isEmpty) {
+                                  return 'Пароль не может состоять только из пробелов';
+                                }
+                                if (password.contains('\u0000')) {
+                                  return 'Пароль содержит недопустимый символ';
+                                }
+                                if (_isRegister &&
+                                    utf8.encode(password).length > 72) {
+                                  return 'Пароль слишком длинный';
+                                }
+                                return null;
+                              },
+                              hint: _isRegister ? 'Не менее 6 символов' : null,
+                            ),
+                            const SizedBox(height: 24),
+                            if (auth.errorMessage != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: Semantics(
+                                  liveRegion: true,
+                                  child: Text(
+                                    auth.errorMessage!,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: colors.error,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
+                            FilledButton(
+                              onPressed: auth.isLoading ? null : _submit,
+                              child: auth.isLoading
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Text(
+                                      _isRegister ? 'Создать аккаунт' : 'Войти',
+                                      textAlign: TextAlign.center,
+                                    ),
                             ),
-                          if (auth.isLoading)
-                            const Center(child: CircularProgressIndicator())
-                          else
-                            ElevatedButton(
-                              onPressed: () async {
-                                FocusScope.of(context).unfocus();
-                                setState(() => _submitted = true);
-                                if (!_formKey.currentState!.validate()) return;
-                                if (_isRegister) {
-                                  await auth.register(
-                                    _usernameController.text.trim(),
-                                    _passwordController.text,
-                                  );
-                                } else {
-                                  await auth.login(
-                                    _usernameController.text.trim(),
-                                    _passwordController.text,
-                                  );
-                                }
-                                if (context.mounted && auth.isAuthenticated) {
-                                  Navigator.of(context).pop(true);
-                                }
-                              },
+                            const SizedBox(height: 12),
+                            TextButton(
+                              onPressed: auth.isLoading
+                                  ? null
+                                  : () {
+                                      auth.clearError();
+                                      setState(() {
+                                        _isRegister = !_isRegister;
+                                        _submitted = false;
+                                        _formKey = GlobalKey<FormState>();
+                                      });
+                                    },
                               child: Text(
-                                _isRegister ? 'Создать аккаунт' : 'ВОЙТИ',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                _isRegister
+                                    ? 'Уже есть аккаунт? Войти'
+                                    : 'Нет аккаунта? Создать',
                               ),
                             ),
-                          const SizedBox(height: 12),
-                          TextButton(
-                            onPressed: auth.isLoading
-                                ? null
-                                : () {
-                                    auth.clearError();
-                                    setState(() {
-                                      _isRegister = !_isRegister;
-                                      _submitted = false;
-                                      _formKey = GlobalKey<FormState>();
-                                    });
-                                  },
-                            child: Text(
-                              _isRegister
-                                  ? 'Уже есть аккаунт? Войти'
-                                  : 'Нет аккаунта? Создать',
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text('Продолжить без входа'),
                             ),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text('Продолжить без входа'),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -208,6 +218,10 @@ class _AuthScreenState extends State<AuthScreen> {
     onChanged: (_) => context.read<AuthProvider>().clearError(),
     autocorrect: false,
     enableSuggestions: !password,
+    autofillHints: password
+        ? [_isRegister ? AutofillHints.newPassword : AutofillHints.password]
+        : const [AutofillHints.username],
+    onFieldSubmitted: password ? (_) => _submit() : null,
     textInputAction: password ? TextInputAction.done : TextInputAction.next,
     obscureText: password && _obscurePassword,
     decoration: InputDecoration(

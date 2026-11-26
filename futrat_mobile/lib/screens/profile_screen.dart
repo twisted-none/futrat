@@ -17,64 +17,89 @@ class ProfileScreen extends StatelessWidget {
     final user = auth.currentUser;
     return Scaffold(
       appBar: AppBar(title: const Text('Профиль')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    const CircleAvatar(
-                      radius: 36,
-                      child: Icon(Icons.person_outline, size: 36),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      user?.username ?? 'Гость',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      user == null
-                          ? 'Смотрите матчи без регистрации'
-                          : 'Аккаунт Futrat',
-                      style: TextStyle(color: theme.dimTextColor),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Column(
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
                 children: [
-                  ListTile(
-                    leading: Icon(
-                      theme.isDark
-                          ? Icons.dark_mode_outlined
-                          : Icons.light_mode_outlined,
-                    ),
-                    title: const Text('Тема оформления'),
-                    subtitle: Text(theme.isDark ? 'Тёмная' : 'Светлая'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _showThemePicker(context),
+                  const CircleAvatar(
+                    radius: 24,
+                    child: Icon(Icons.person_outline),
                   ),
-                  const Divider(height: 1, indent: 16, endIndent: 16),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+                  const SizedBox(width: 16),
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Акцентный цвет'),
-                        const SizedBox(height: 8),
-                        Row(
+                        Tooltip(
+                          message: user?.username ?? 'Гость',
+                          child: Text(
+                            user?.username ?? 'Гость',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          user == null
+                              ? 'Смотрите матчи без регистрации'
+                              : 'Аккаунт Futrat',
+                          style: TextStyle(color: theme.dimTextColor),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (user == null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: FilledButton.icon(
+                onPressed: () => openAuthScreen(context),
+                icon: const Icon(Icons.login),
+                label: const Text('Войти / зарегистрироваться'),
+              ),
+            ),
+          const SizedBox(height: 12),
+          Text('Оформление', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ListTile(
+                  leading: Icon(
+                    theme.isDark
+                        ? Icons.dark_mode_outlined
+                        : Icons.light_mode_outlined,
+                  ),
+                  title: const Text('Тема'),
+                  subtitle: Text(theme.isDark ? 'Тёмная' : 'Светлая'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _showThemePicker(context),
+                ),
+                const Divider(height: 1, indent: 16, endIndent: 16),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
+                  child: Text('Акцентный цвет'),
+                ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final width = constraints.maxWidth < 432
+                        ? 432.0
+                        : constraints.maxWidth;
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: SizedBox(
+                        width: width,
+                        child: Row(
                           children: [
                             for (final accent in AppAccent.values)
                               Expanded(
@@ -88,7 +113,7 @@ class ProfileScreen extends StatelessWidget {
                                       key: ValueKey('accent-${accent.name}'),
                                       onTap: () => appearance.setAccent(accent),
                                       child: SizedBox(
-                                        height: 44,
+                                        height: 48,
                                         child: Center(
                                           child: Container(
                                             width: 22,
@@ -130,29 +155,27 @@ class ProfileScreen extends StatelessWidget {
                               ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          if (user != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 24),
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  await auth.logout();
+                  if (context.mounted)
+                    context.read<DataProvider>().clearFavorites();
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text('Выйти'),
               ),
             ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: user == null
-                  ? () => openAuthScreen(context)
-                  : () async {
-                      await auth.logout();
-                      if (context.mounted) {
-                        context.read<DataProvider>().clearFavorites();
-                      }
-                    },
-              icon: Icon(user == null ? Icons.login : Icons.exit_to_app),
-              label: Text(
-                user == null ? 'Войти / зарегистрироваться' : 'Выйти',
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }

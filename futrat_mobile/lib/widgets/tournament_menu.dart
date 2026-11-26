@@ -24,17 +24,24 @@ class TournamentDrawer extends StatelessWidget {
       backgroundColor: theme.scaffoldBg,
       child: Column(
         children: [
-          DrawerHeader(
-            decoration: BoxDecoration(color: theme.cardBg),
-            child: Center(
-              child: Text(
-                'FUTRAT',
-                style: TextStyle(
-                  color: theme.textColor,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                ),
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+              child: Row(
+                children: [
+                  Image.asset('assets/icon.png', width: 32, height: 32),
+                  const SizedBox(width: 12),
+                  Text(
+                    'FUTRAT',
+                    style: TextStyle(
+                      color: theme.textColor,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -386,6 +393,8 @@ class _TournamentMenuState extends State<TournamentMenu> {
       ListTile(
         key: ValueKey('league-${group.key}-${menuLeagueKey(league)}'),
         contentPadding: const EdgeInsets.only(left: 16, right: 4),
+        selected: selected,
+        selectedTileColor: theme.accentColor.withValues(alpha: .08),
         leading: FootballLogo(url: league.logoUrl, size: 28, padding: 3),
         title: Text(
           name,
@@ -402,7 +411,7 @@ class _TournamentMenuState extends State<TournamentMenu> {
               : 'Добавить в избранное',
           icon: Icon(
             group.favorite ? Icons.star : Icons.star_border,
-            color: group.favorite ? Colors.amber : theme.dimTextColor,
+            color: group.favorite ? theme.accentColor : theme.dimTextColor,
           ),
           onPressed: () => widget.onFavorite(league),
         ),

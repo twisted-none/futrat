@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/data_provider.dart';
@@ -68,24 +69,38 @@ class _FutratAppState extends State<FutratApp> with WidgetsBindingObserver {
   late final GoRouter _router = GoRouter(
     initialLocation: '/home',
     routes: [
-      ShellRoute(
-        builder: (context, state, child) => MainScaffold(child: child),
-        routes: [
-          GoRoute(
-            path: '/home',
-            builder: (context, state) => const HomeScreen(),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, shell) =>
+            MainScaffold(navigationShell: shell, child: shell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
+            ],
           ),
-          GoRoute(
-            path: '/leaderboard',
-            builder: (context, state) => const ForecastsScreen(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/leaderboard',
+                builder: (_, _) => const ForecastsScreen(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: '/favorites',
-            builder: (context, state) => const FavoritesScreen(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/favorites',
+                builder: (_, _) => const FavoritesScreen(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: '/profile',
-            builder: (context, state) => const ProfileScreen(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                builder: (_, _) => const ProfileScreen(),
+              ),
+            ],
           ),
         ],
       ),
@@ -105,6 +120,13 @@ class _FutratAppState extends State<FutratApp> with WidgetsBindingObserver {
 
     return MaterialApp.router(
       title: 'Futrat',
+      locale: const Locale('ru'),
+      supportedLocales: const [Locale('ru')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       debugShowCheckedModeBanner: false,
       // Применяем тему из провайдера
       theme: themeProvider.currentTheme.themeData,
